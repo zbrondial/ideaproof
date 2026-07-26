@@ -3,7 +3,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-import { loadStorageConfig } from "@/server/config";
+import { loadStorageConfig, type AiProvider } from "@/server/config";
 import { AppError } from "@/server/errors";
 
 import { migrate } from "./migrate";
@@ -25,6 +25,8 @@ export type Project = {
   technologyPreference: string;
   ndaPurpose: string;
   ndaDetails: string;
+  provider: AiProvider;
+  model: string;
   status: ProjectStatus;
   selectedSpecificationRevisionId: string | null;
   selectedNdaRevisionId: string | null;
@@ -41,8 +43,9 @@ export type Revision = {
   wordCount: number;
   feedback: string | null;
   promptTemplateVersion: string;
+  provider: AiProvider;
   model: string;
-  openaiResponseId: string | null;
+  providerResponseId: string | null;
   createdAt: string;
 };
 
@@ -87,6 +90,8 @@ type ProjectRow = {
   technology_preference: string;
   nda_purpose: string;
   nda_details: string;
+  provider: AiProvider;
+  model: string;
   status: ProjectStatus;
   selected_specification_revision_id: string | null;
   selected_nda_revision_id: string | null;
@@ -103,8 +108,9 @@ type RevisionRow = {
   word_count: number;
   feedback: string | null;
   prompt_template_version: string;
+  provider: AiProvider;
   model: string;
-  openai_response_id: string | null;
+  provider_response_id: string | null;
   created_at: string;
 };
 
@@ -149,6 +155,8 @@ function projectFromRow(row: ProjectRow): Project {
     technologyPreference: row.technology_preference,
     ndaPurpose: row.nda_purpose,
     ndaDetails: row.nda_details,
+    provider: row.provider,
+    model: row.model,
     status: row.status,
     selectedSpecificationRevisionId: row.selected_specification_revision_id,
     selectedNdaRevisionId: row.selected_nda_revision_id,
@@ -167,8 +175,9 @@ function revisionFromRow(row: RevisionRow): Revision {
     wordCount: row.word_count,
     feedback: row.feedback,
     promptTemplateVersion: row.prompt_template_version,
+    provider: row.provider,
     model: row.model,
-    openaiResponseId: row.openai_response_id,
+    providerResponseId: row.provider_response_id,
     createdAt: row.created_at,
   };
 }
@@ -249,6 +258,8 @@ export function createProjectStore(filename: string) {
       technologyPreference?: string;
       ndaPurpose: string;
       ndaDetails?: string;
+      provider: AiProvider;
+      model: string;
     }): Project {
       const id = randomUUID();
       const now = new Date().toISOString();
@@ -256,8 +267,8 @@ export function createProjectStore(filename: string) {
         .prepare(
           `INSERT INTO projects
             (id, title, idea, technology_preference, nda_purpose, nda_details,
-             status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
+             provider, model, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
         )
         .run(
           id,
@@ -266,6 +277,8 @@ export function createProjectStore(filename: string) {
           input.technologyPreference ?? "",
           input.ndaPurpose,
           input.ndaDetails ?? "",
+          input.provider,
+          input.model,
           now,
           now,
         );
@@ -386,11 +399,22 @@ export function createProjectStore(filename: string) {
       wordCount: number;
       feedback: string | null;
       promptTemplateVersion: string;
+      provider: AiProvider;
       model: string;
-      openaiResponseId: string | null;
+      providerResponseId: string | null;
     }): Revision {
       return inTransaction(database, () => {
-        getProjectRow(input.projectId);
+        const project = getProjectRow(input.projectId);
+        if (
+          input.provider !== project.provider ||
+          input.model !== project.model
+        ) {
+          throw new AppError(
+            "PROJECT_PROVIDER_MISMATCH",
+            "Revisions must use the model selected for this project.",
+            409,
+          );
+        }
         const approval = database
           .prepare("SELECT id FROM approvals WHERE project_id = ?")
           .get(input.projectId);
@@ -413,9 +437,9 @@ export function createProjectStore(filename: string) {
           .prepare(
             `INSERT INTO revisions
               (id, project_id, document_type, version, content, word_count,
-               feedback, prompt_template_version, model, openai_response_id,
-               created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+               feedback, prompt_template_version, provider, model,
+               provider_response_id, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             id,
@@ -426,8 +450,9 @@ export function createProjectStore(filename: string) {
             input.wordCount,
             input.feedback,
             input.promptTemplateVersion,
+            input.provider,
             input.model,
-            input.openaiResponseId,
+            input.providerResponseId,
             now,
           );
         return revisionFromRow(getRevisionRow(id));

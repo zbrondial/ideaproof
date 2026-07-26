@@ -32,8 +32,9 @@ function testRevision(projectId: string, documentType: DocumentType) {
     wordCount: 3,
     feedback: null,
     promptTemplateVersion: `${documentType}-v1`,
+    provider: "openai" as const,
     model: "gpt-5.6",
-    openaiResponseId: "resp_existing",
+    providerResponseId: "resp_existing",
   };
 }
 
@@ -48,6 +49,8 @@ export function createGenerationHarness(
     technologyPreference: "Next.js",
     ndaPurpose: "Discuss a possible product collaboration",
     ndaDetails: "",
+    provider: "openai",
+    model: "gpt-5.6",
   });
   const mockGeneration = {
     specification: vi.fn(),

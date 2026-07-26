@@ -114,8 +114,9 @@ export async function handleGenerate({
       wordCount: generated.wordCount,
       feedback: null,
       promptTemplateVersion: generated.promptTemplateVersion,
+      provider: project.provider,
       model: generated.model,
-      openaiResponseId: generated.openaiResponseId,
+      providerResponseId: generated.openaiResponseId,
     });
     store.selectRevision(projectId, documentType, revision.id);
 

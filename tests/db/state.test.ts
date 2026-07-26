@@ -7,6 +7,8 @@ const projectInput = {
   technologyPreference: "TypeScript",
   ndaPurpose: "Discuss a possible collaboration",
   ndaDetails: "",
+  provider: "openai" as const,
+  model: "gpt-5.6",
 };
 
 function addRevision(
@@ -21,8 +23,9 @@ function addRevision(
     wordCount: 1,
     feedback: null,
     promptTemplateVersion: `${documentType}-v1`,
+    provider: "openai",
     model: "gpt-5.6",
-    openaiResponseId: "resp_test",
+    providerResponseId: "resp_test",
   });
 }
 
@@ -94,8 +97,9 @@ it("creates one immutable approval for revisions from the same project", () => {
         wordCount: 2,
         feedback: "Change it",
         promptTemplateVersion: "nda-v1",
+        provider: "openai",
         model: "gpt-5.6",
-        openaiResponseId: null,
+        providerResponseId: null,
       }),
     ).toThrowError(expect.objectContaining({ code: "PROJECT_IMMUTABLE" }));
     expect(() =>

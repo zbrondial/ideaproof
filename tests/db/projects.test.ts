@@ -1,4 +1,11 @@
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { DatabaseSync } from "node:sqlite";
+
 import { expect, it } from "vitest";
+
+import { createProjectStore } from "@/server/db/projects";
 
 import { openTestStore } from "../helpers/open-test-store";
 
@@ -7,6 +14,8 @@ const projectInput = {
   technologyPreference: "TypeScript",
   ndaPurpose: "Evaluate a possible collaboration",
   ndaDetails: "",
+  provider: "openai" as const,
+  model: "gpt-5.6",
 };
 
 it("creates, lists, and loads a project with a normalized title", () => {
@@ -46,8 +55,9 @@ it("preserves every revision and selects one revision per document type", () => 
         wordCount: 2,
         feedback,
         promptTemplateVersion: "spec-v1",
+        provider: "openai",
         model: "gpt-5.6",
-        openaiResponseId: "resp_test",
+        providerResponseId: "resp_test",
       });
 
     const first = addSpec("# Version one", null);
@@ -84,8 +94,9 @@ it("rejects selecting a revision from another project", () => {
       wordCount: 1,
       feedback: null,
       promptTemplateVersion: "nda-v1",
+      provider: "openai",
       model: "gpt-5.6",
-      openaiResponseId: null,
+      providerResponseId: null,
     });
 
     expect(() =>
@@ -95,5 +106,138 @@ it("rejects selecting a revision from another project", () => {
     );
   } finally {
     store.closeAndRemove();
+  }
+});
+
+it("stores one provider and model for the project and its revisions", () => {
+  const store = openTestStore();
+
+  try {
+    const project = store.createProject({
+      idea: "A local tool that proves exact generated idea documents.",
+      technologyPreference: "Next.js",
+      ndaPurpose: "Evaluate a possible collaboration",
+      ndaDetails: "",
+      provider: "anthropic",
+      model: "claude-opus-4-8",
+    });
+    const revision = store.addRevision({
+      projectId: project.id,
+      documentType: "specification",
+      content: "# Product Overview\n\nFixture",
+      wordCount: 3,
+      feedback: null,
+      promptTemplateVersion: "spec-v2",
+      provider: project.provider,
+      model: project.model,
+      providerResponseId: "msg_fixture",
+    });
+
+    expect(store.getProject(project.id)).toMatchObject({
+      provider: "anthropic",
+      model: "claude-opus-4-8",
+    });
+    expect(revision).toMatchObject({
+      provider: "anthropic",
+      model: "claude-opus-4-8",
+      providerResponseId: "msg_fixture",
+    });
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("rejects a revision from a different provider or model", () => {
+  const store = openTestStore();
+
+  try {
+    const project = store.createProject(projectInput);
+    expect(() =>
+      store.addRevision({
+        projectId: project.id,
+        documentType: "specification",
+        content: "# Product Overview\n\nFixture",
+        wordCount: 3,
+        feedback: null,
+        promptTemplateVersion: "spec-v2",
+        provider: "anthropic",
+        model: "claude-opus-4-8",
+        providerResponseId: "msg_fixture",
+      }),
+    ).toThrowError(
+      expect.objectContaining({ code: "PROJECT_PROVIDER_MISMATCH" }),
+    );
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("migrates existing OpenAI revisions without losing their model or response ID", () => {
+  const directory = mkdtempSync(join(tmpdir(), "ideaproof-migration-"));
+  const databasePath = join(directory, "legacy.sqlite");
+  const projectId = "00000000-0000-4000-8000-000000000001";
+  const revisionId = "00000000-0000-4000-8000-000000000002";
+  const now = "2026-07-25T00:00:00.000Z";
+  const legacy = new DatabaseSync(databasePath);
+  let legacyOpen = true;
+
+  try {
+    legacy.exec(readFileSync("server/db/migrations/001-initial.sql", "utf8"));
+    legacy.exec("PRAGMA user_version = 1");
+    legacy
+      .prepare(
+        `INSERT INTO projects
+          (id, title, idea, technology_preference, nda_purpose, nda_details,
+           status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
+      )
+      .run(
+        projectId,
+        "Legacy idea",
+        "A legacy locally stored idea",
+        "",
+        "Evaluation",
+        "",
+        now,
+        now,
+      );
+    legacy
+      .prepare(
+        `INSERT INTO revisions
+          (id, project_id, document_type, version, content, word_count,
+           feedback, prompt_template_version, model, openai_response_id,
+           created_at)
+         VALUES (?, ?, 'specification', 1, ?, 3, NULL, ?, ?, ?, ?)`,
+      )
+      .run(
+        revisionId,
+        projectId,
+        "# Legacy\n\nDocument",
+        "spec-v1",
+        "gpt-5.6",
+        "resp_legacy",
+        now,
+      );
+    legacy.close();
+    legacyOpen = false;
+
+    const migrated = createProjectStore(databasePath);
+    try {
+      expect(migrated.getProject(projectId)).toMatchObject({
+        provider: "openai",
+        model: "gpt-5.6",
+        revisions: [
+          expect.objectContaining({
+            provider: "openai",
+            providerResponseId: "resp_legacy",
+          }),
+        ],
+      });
+    } finally {
+      migrated.close();
+    }
+  } finally {
+    if (legacyOpen) legacy.close();
+    rmSync(directory, { recursive: true, force: true });
   }
 });

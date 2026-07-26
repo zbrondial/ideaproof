@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { listConfiguredProviders } from "@/server/config";
 import { getProjectStore, type ProjectStatus } from "@/server/db/projects";
+import { AppError } from "@/server/errors";
 
 const projectInputSchema = z
   .object({
@@ -24,7 +26,19 @@ const statuses = new Set<ProjectStatus>([
 export async function POST(request: Request) {
   try {
     const input = projectInputSchema.parse(await request.json());
-    const project = getProjectStore().createProject(input);
+    const selected = listConfiguredProviders()[0];
+    if (!selected) {
+      throw new AppError(
+        "SETUP_PROVIDER_MISSING",
+        "Configure an OpenAI or Anthropic API key.",
+        503,
+      );
+    }
+    const project = getProjectStore().createProject({
+      ...input,
+      provider: selected.provider,
+      model: selected.model,
+    });
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError) {

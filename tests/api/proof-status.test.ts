@@ -20,6 +20,8 @@ function pendingProject(store: ReturnType<typeof openTestStore>) {
   const project = store.createProject({
     idea: "A local app that verifies timestamped idea documents",
     ndaPurpose: "Discuss a possible collaboration",
+    provider: "openai",
+    model: "gpt-5.6",
   });
   store.transitionProject(project.id, "draft", "generating");
   const add = (documentType: "specification" | "nda") =>
@@ -30,8 +32,9 @@ function pendingProject(store: ReturnType<typeof openTestStore>) {
       wordCount: 1,
       feedback: null,
       promptTemplateVersion: `${documentType}-v1`,
+      provider: "openai",
       model: "gpt-5.6",
-      openaiResponseId: null,
+      providerResponseId: null,
     });
   const specification = add("specification");
   const nda = add("nda");

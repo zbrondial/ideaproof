@@ -96,8 +96,9 @@ export async function handleRevision({
       wordCount: generated.wordCount,
       feedback: input.feedback,
       promptTemplateVersion: generated.promptTemplateVersion,
+      provider: project.provider,
       model: generated.model,
-      openaiResponseId: generated.openaiResponseId,
+      providerResponseId: generated.openaiResponseId,
     });
     store.selectRevision(projectId, input.documentType, nextRevision.id);
     if (store.getProject(projectId).status === "generating") {

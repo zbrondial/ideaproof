@@ -22,6 +22,8 @@ function reviewProject(store: ReturnType<typeof openTestStore>) {
   const project = store.createProject({
     idea: "A local app that makes concise idea documents and timestamp proofs",
     ndaPurpose: "Discuss a possible product collaboration",
+    provider: "openai",
+    model: "gpt-5.6",
   });
   store.transitionProject(project.id, "draft", "generating");
   const specification = store.addRevision({
@@ -31,8 +33,9 @@ function reviewProject(store: ReturnType<typeof openTestStore>) {
     wordCount: 5,
     feedback: null,
     promptTemplateVersion: "spec-v1",
+    provider: "openai",
     model: "gpt-5.6",
-    openaiResponseId: "resp_spec",
+    providerResponseId: "resp_spec",
   });
   const nda = store.addRevision({
     projectId: project.id,
@@ -42,8 +45,9 @@ function reviewProject(store: ReturnType<typeof openTestStore>) {
     wordCount: 6,
     feedback: null,
     promptTemplateVersion: "nda-v1",
+    provider: "openai",
     model: "gpt-5.6",
-    openaiResponseId: "resp_nda",
+    providerResponseId: "resp_nda",
   });
   store.selectRevision(project.id, "specification", specification.id);
   store.selectRevision(project.id, "nda", nda.id);
