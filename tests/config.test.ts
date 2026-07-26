@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadConfig } from "@/server/config";
+import { loadConfig, loadStorageConfig } from "@/server/config";
 
 const originalEnvironment = { ...process.env };
 
@@ -28,5 +28,12 @@ describe("loadConfig", () => {
     expect(() => loadConfig()).toThrowError(
       expect.objectContaining({ code: "SETUP_OPENAI_KEY_MISSING" }),
     );
+  });
+
+  it("loads local storage without requiring an OpenAI key", () => {
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.IDEAPROOF_DATA_DIR;
+
+    expect(loadStorageConfig().dataDir).toMatch(/data$/);
   });
 });

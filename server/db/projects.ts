@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
+import { loadStorageConfig } from "@/server/config";
 import { AppError } from "@/server/errors";
 
 import { migrate } from "./migrate";
@@ -269,23 +272,52 @@ export function createProjectStore(filename: string) {
       return projectFromRow(getProjectRow(id));
     },
 
-    listProjects(query: { search?: string } = {}): ProjectSummary[] {
+    listProjects(
+      query: { search?: string; status?: ProjectStatus } = {},
+    ): ProjectSummary[] {
       const search = query.search?.trim();
-      const rows = search
-        ? (database
+      const rows =
+        search && query.status
+          ? (database
             .prepare(
               `SELECT id, title, status, created_at, updated_at
                FROM projects
-               WHERE title LIKE ? OR idea LIKE ?
+               WHERE status = ? AND (title LIKE ? OR idea LIKE ?)
                ORDER BY updated_at DESC`,
             )
-            .all(`%${search}%`, `%${search}%`) as Array<
+            .all(query.status, `%${search}%`, `%${search}%`) as Array<
             Pick<
               ProjectRow,
               "id" | "title" | "status" | "created_at" | "updated_at"
             >
           >)
-        : (database
+          : search
+            ? (database
+                .prepare(
+                  `SELECT id, title, status, created_at, updated_at
+                   FROM projects
+                   WHERE title LIKE ? OR idea LIKE ?
+                   ORDER BY updated_at DESC`,
+                )
+                .all(`%${search}%`, `%${search}%`) as Array<
+                Pick<
+                  ProjectRow,
+                  "id" | "title" | "status" | "created_at" | "updated_at"
+                >
+              >)
+            : query.status
+              ? (database
+                  .prepare(
+                    `SELECT id, title, status, created_at, updated_at
+                     FROM projects WHERE status = ? ORDER BY updated_at DESC`,
+                  )
+                  .all(query.status) as Array<
+                  Pick<
+                    ProjectRow,
+                    "id" | "title" | "status" | "created_at" | "updated_at"
+                  >
+                >)
+              : (database
             .prepare(
               `SELECT id, title, status, created_at, updated_at
                FROM projects ORDER BY updated_at DESC`,
@@ -551,4 +583,14 @@ export function createProjectStore(filename: string) {
       database.close();
     },
   };
+}
+
+let localProjectStore: ReturnType<typeof createProjectStore> | undefined;
+
+export function getProjectStore() {
+  if (localProjectStore) return localProjectStore;
+  const { dataDir } = loadStorageConfig();
+  mkdirSync(dataDir, { recursive: true });
+  localProjectStore = createProjectStore(join(dataDir, "ideaproof.sqlite"));
+  return localProjectStore;
 }
