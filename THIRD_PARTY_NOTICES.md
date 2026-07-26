@@ -14,7 +14,7 @@ the corresponding distributions.
 The client is installed into the project-local Python virtual environment and
 invoked as a separate executable.
 
-## IBM Plex Sans
+## IBM Plex Sans and Mono
 
 - Asset: IBM Plex Sans Regular
 - License: SIL Open Font License 1.1
@@ -24,6 +24,10 @@ invoked as a separate executable.
 - License: SIL Open Font License 1.1
 - SHA-256:
   `a20caf8286023a6a7a85e40b1d2a4ae9fc3e3b1f9eda8f4c542dd4986af67bb1`
+- Asset: IBM Plex Mono Regular
+- License: SIL Open Font License 1.1
+- SHA-256:
+  `7c6fbddca4b700be918f5f6183d9bd4464fa427fe435f0b480d77fe2bb8c5a43`
 - Included license SHA-256:
   `7e6b2818edbd8f6a01ae80641cc8f16a51080d08fb4e532be3a0b6f74adb07da`
 - Source: <https://github.com/IBM/plex>

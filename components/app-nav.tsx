@@ -10,11 +10,11 @@ export function AppNav() {
     <header className="site-header">
       <nav className="nav-shell" aria-label="Primary navigation">
         <Link className="wordmark" href="/" onClick={() => setOpen(false)}>
-          <svg viewBox="0 0 32 32" aria-hidden="true">
-            <rect x="3" y="3" width="11" height="11" rx="2" />
-            <rect x="18" y="3" width="11" height="11" rx="2" opacity=".42" />
-            <rect x="3" y="18" width="11" height="11" rx="2" opacity=".42" />
-            <rect x="18" y="18" width="11" height="11" rx="2" />
+          <svg viewBox="0 0 22 22" aria-hidden="true">
+            <rect x="1" y="1" width="9" height="9" rx="2" />
+            <rect x="12" y="1" width="9" height="9" rx="2" opacity=".4" />
+            <rect x="1" y="12" width="9" height="9" rx="2" opacity=".4" />
+            <rect x="12" y="12" width="9" height="9" rx="2" />
           </svg>
           IdeaProof
         </Link>
@@ -25,14 +25,22 @@ export function AppNav() {
           aria-controls="primary-links"
           onClick={() => setOpen((current) => !current)}
         >
-          Menu
+          <span className="visually-hidden">Toggle navigation</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <rect y="3" width="20" height="2" rx="1" />
+            <rect y="9" width="20" height="2" rx="1" />
+            <rect y="15" width="20" height="2" rx="1" />
+          </svg>
         </button>
         <div className="nav-links" id="primary-links" data-open={open}>
           <Link href="/projects" onClick={() => setOpen(false)}>
-            Proof logs
+            Proof Logs
           </Link>
           <Link href="/verify" onClick={() => setOpen(false)}>
-            Verify
+            Verify proof
+          </Link>
+          <Link href="/how-it-works" onClick={() => setOpen(false)}>
+            How it works
           </Link>
           <Link href="/terms" onClick={() => setOpen(false)}>
             Terms
