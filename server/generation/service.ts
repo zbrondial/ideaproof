@@ -92,7 +92,7 @@ function requestFor(input: GenerationInput) {
     return {
       schema: technicalSpecificationSchema,
       prompt: buildSpecificationPrompt(input),
-      limit: 1_200,
+      limit: 1_000,
       promptTemplateVersion: SPEC_PROMPT_VERSION,
       render: (output: StructuredOutput) =>
         toSpecificationMarkdown(output as TechnicalSpecificationOutput),

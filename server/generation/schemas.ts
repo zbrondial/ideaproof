@@ -3,15 +3,11 @@ import { z } from "zod";
 export const technicalSpecificationSchema = z
   .object({
     title: z.string().min(1).max(120),
-    ideaSummary: z.string().min(1),
-    problemAndUser: z.string().min(1),
-    goals: z.array(z.string().min(1)).min(1).max(6),
-    nonGoals: z.array(z.string().min(1)).max(6),
-    coreFlow: z.array(z.string().min(1)).min(1).max(8),
-    technicalApproach: z.string().min(1),
-    boundaries: z.array(z.string().min(1)).max(8),
-    risksAndDecisions: z.array(z.string().min(1)).max(8),
-    nextSteps: z.array(z.string().min(1)).max(8),
+    productOverview: z.string().min(1),
+    coreFeatures: z.array(z.string().min(1)).min(1).max(8),
+    technicalArchitecture: z.string().min(1),
+    apiDesign: z.string().min(1),
+    securityConsiderations: z.array(z.string().min(1)).min(1).max(8),
   })
   .strict();
 

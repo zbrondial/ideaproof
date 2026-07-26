@@ -12,41 +12,25 @@ export function toSpecificationMarkdown(
 ): string {
   return `# ${output.title}
 
-## Idea summary
+## 1. Product Overview
 
-${output.ideaSummary}
+${output.productOverview}
 
-## Problem and user
+## 2. Core Features
 
-${output.problemAndUser}
+${list(output.coreFeatures)}
 
-## Goals
+## 3. Technical Architecture
 
-${list(output.goals)}
+${output.technicalArchitecture}
 
-## Non-goals
+## 4. API Design
 
-${list(output.nonGoals)}
+${output.apiDesign}
 
-## Core flow
+## 5. Security Considerations
 
-${list(output.coreFlow)}
-
-## Technical approach
-
-${output.technicalApproach}
-
-## Boundaries
-
-${list(output.boundaries)}
-
-## Risks and decisions
-
-${list(output.risksAndDecisions)}
-
-## Next steps
-
-${list(output.nextSteps)}
+${list(output.securityConsiderations)}
 `;
 }
 

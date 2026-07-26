@@ -1,5 +1,5 @@
-export const SPEC_PROMPT_VERSION = "spec-v1";
-export const NDA_PROMPT_VERSION = "nda-v1";
+export const SPEC_PROMPT_VERSION = "spec-v2";
+export const NDA_PROMPT_VERSION = "nda-v2";
 
 function userFacts(value: object) {
   return `BEGIN USER FACTS
@@ -19,9 +19,15 @@ export function buildSpecificationPrompt(input: {
   idea: string;
   technologyPreference?: string;
 }) {
-  return `${instructions("technical specification", 1_200)}
+  return `${instructions("technical specification", 1_000)}
 
 Focus on an implementable local web application. State unknowns as decisions to validate.
+Use this exact section order:
+1. Product Overview
+2. Core Features
+3. Technical Architecture
+4. API Design
+5. Security Considerations
 
 ${userFacts({
   idea: input.idea,

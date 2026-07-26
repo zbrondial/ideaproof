@@ -42,10 +42,10 @@ function ndaResponses(outputs: MutualNdaOutput[]) {
 }
 
 it("retries an over-limit document once", async () => {
-  const api = fakeResponses([specWithWords(1_201), specWithWords(900)]);
+  const api = fakeResponses([specWithWords(1_001), specWithWords(900)]);
   const result = await generateDocument(validSpecInput, api);
 
-  expect(result.wordCount).toBeLessThanOrEqual(1_200);
+  expect(result.wordCount).toBeLessThanOrEqual(1_000);
   expect(api.calls).toHaveLength(2);
   expect(JSON.stringify(api.calls[1])).toContain("Shorten this document");
   expect(result).toMatchObject({
@@ -55,7 +55,7 @@ it("retries an over-limit document once", async () => {
 });
 
 it("fails after the single shortening retry", async () => {
-  const api = fakeResponses([specWithWords(1_201), specWithWords(1_201)]);
+  const api = fakeResponses([specWithWords(1_001), specWithWords(1_001)]);
 
   await expect(generateDocument(validSpecInput, api)).rejects.toMatchObject({
     code: "OPENAI_OUTPUT_TOO_LONG",
@@ -64,7 +64,7 @@ it("fails after the single shortening retry", async () => {
 });
 
 it("revises only the selected document and shortens it once when needed", async () => {
-  const api = fakeResponses([specWithWords(1_201), specWithWords(800)]);
+  const api = fakeResponses([specWithWords(1_001), specWithWords(800)]);
   const result = await reviseDocument(
     {
       ...validSpecInput,
@@ -74,7 +74,7 @@ it("revises only the selected document and shortens it once when needed", async 
     api,
   );
 
-  expect(result.wordCount).toBeLessThanOrEqual(1_200);
+  expect(result.wordCount).toBeLessThanOrEqual(1_000);
   expect(api.calls).toHaveLength(2);
   expect(JSON.stringify(api.calls[0])).toContain(
     "# Current selected specification",

@@ -8,40 +8,24 @@ import type {
 
 const specification: TechnicalSpecificationOutput = {
   title: "IdeaProof local proof application",
-  ideaSummary:
+  productOverview:
     "A local web application that turns an early product idea into a concise technical specification and a simple mutual NDA, then timestamps the approved PDFs.",
-  problemAndUser:
-    "Founders and independent builders need a reviewable record of an early idea without adopting a hosted project system.",
-  goals: [
+  coreFeatures: [
     "Generate two concise documents from supplied facts",
     "Keep project records on the user's machine",
     "Timestamp the exact approved PDF bytes",
-  ],
-  nonGoals: [
-    "Prove ownership or authorship",
-    "Replace legal review",
-    "Operate as a hosted collaboration service",
-  ],
-  coreFlow: [
-    "Describe the idea and NDA purpose",
-    "Generate and review both documents",
-    "Revise either document",
-    "Approve exact revisions",
+    "Review and revise either document before approval",
     "Download and verify the timestamp proof package",
   ],
-  technicalApproach:
-    "Run a Next.js application on localhost with SQLite storage, server-only OpenAI calls, deterministic PDF rendering, and a project-local OpenTimestamps client.",
-  boundaries: [
-    "Generation sends required content to OpenAI",
+  technicalArchitecture:
+    "Run a Next.js application on localhost with SQLite storage, server-only AI provider calls, deterministic PDF rendering, and a project-local OpenTimestamps client.",
+  apiDesign:
+    "Validated server routes create projects, generate and revise documents, approve exact revisions, check proof status, and verify uploaded PDF proof pairs.",
+  securityConsiderations: [
+    "Provider API keys remain on the server",
     "Project records and artifacts remain in the configured local data directory",
-  ],
-  risksAndDecisions: [
     "Generated content can contain errors and requires review",
-    "Bitcoin confirmation can take hours",
-  ],
-  nextSteps: [
-    "Test the workflow with representative early-stage ideas",
-    "Review the NDA template with qualified counsel before relying on it",
+    "Timestamps verify exact PDF bytes but do not prove ownership",
   ],
 };
 

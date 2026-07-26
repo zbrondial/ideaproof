@@ -15,15 +15,14 @@ export function specWithWords(count: number): TechnicalSpecificationOutput {
   ).join(" ");
   return {
     title: "IdeaProof",
-    ideaSummary: words,
-    problemAndUser: "Founders need concise records.",
-    goals: ["Generate concise documents"],
-    nonGoals: ["Prove legal ownership"],
-    coreFlow: ["Describe", "Review", "Approve"],
-    technicalApproach: "Run locally.",
-    boundaries: ["OpenAI receives generation input"],
-    risksAndDecisions: ["Generated content needs review"],
-    nextSteps: ["Validate the idea"],
+    productOverview: words,
+    coreFeatures: ["Generate concise documents", "Timestamp approved PDFs"],
+    technicalArchitecture: "Run locally with Next.js and SQLite.",
+    apiDesign: "Use validated server routes for project actions.",
+    securityConsiderations: [
+      "Keep provider API keys on the server",
+      "Validate proof uploads",
+    ],
   };
 }
 

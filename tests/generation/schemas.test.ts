@@ -4,22 +4,28 @@ import {
   mutualNdaSchema,
   technicalSpecificationSchema,
 } from "@/server/generation/schemas";
-import { countWords } from "@/server/generation/word-count";
+import {
+  countWords,
+  toSpecificationMarkdown,
+} from "@/server/generation/word-count";
+
+const validSpecification = {
+  title: "IdeaProof",
+  productOverview: "A concise local proof app.",
+  coreFeatures: ["Generate documents", "Timestamp approved PDFs"],
+  technicalArchitecture: "A local Next.js application backed by SQLite.",
+  apiDesign: "Server routes validate project and document actions.",
+  securityConsiderations: [
+    "Keep API keys on the server",
+    "Validate uploaded proof files",
+  ],
+};
 
 describe("generation schemas", () => {
   it("rejects unknown specification fields", () => {
     expect(() =>
       technicalSpecificationSchema.parse({
-        title: "IdeaProof",
-        ideaSummary: "A concise proof app.",
-        problemAndUser: "Ideas are hard to record.",
-        goals: ["Create a record"],
-        nonGoals: [],
-        coreFlow: ["Describe", "Approve"],
-        technicalApproach: "A local web app.",
-        boundaries: [],
-        risksAndDecisions: [],
-        nextSteps: [],
+        ...validSpecification,
         inventedMetric: "99%",
       }),
     ).toThrow();
@@ -43,6 +49,12 @@ describe("generation schemas", () => {
         signatures: "Party A: ______\nParty B: ______",
       }).partyA,
     ).toBe("");
+  });
+
+  it("renders the five canonical specification sections in order", () => {
+    expect(toSpecificationMarkdown(validSpecification)).toMatch(
+      /## 1\. Product Overview[\s\S]*## 2\. Core Features[\s\S]*## 3\. Technical Architecture[\s\S]*## 4\. API Design[\s\S]*## 5\. Security Considerations/,
+    );
   });
 });
 
