@@ -30,6 +30,7 @@ export function specWithWords(count: number): TechnicalSpecificationOutput {
 export function fakeResponses(outputs: TechnicalSpecificationOutput[]) {
   const calls: unknown[] = [];
   return {
+    provider: "openai" as const,
     calls,
     async parse(request: unknown) {
       calls.push(request);

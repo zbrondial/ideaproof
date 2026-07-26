@@ -20,7 +20,12 @@ it("generates documents independently and retains a successful sibling", async (
     expect((await harness.generate("nda")).status).toBe(429);
     expect(
       harness.store.getRevisions(harness.project.id, "specification"),
-    ).toHaveLength(1);
+    ).toEqual([
+      expect.objectContaining({
+        provider: "openai",
+        providerResponseId: "resp_spec",
+      }),
+    ]);
     expect(
       harness.store.getRevisions(harness.project.id, "nda"),
     ).toHaveLength(0);

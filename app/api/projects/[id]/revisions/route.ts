@@ -27,18 +27,18 @@ type RevisionGeneration = {
   revise(input: RevisionInput): Promise<GeneratedDocument>;
 };
 
-const realGeneration: RevisionGeneration = {
-  revise: async ({ currentMarkdown, ...input }) => {
-    const port = e2eFixturesEnabled()
-      ? (await import("@/tests/fixtures/openai-responses"))
-          .fixtureResponsesPort
-      : undefined;
-    return reviseDocument(
-      { ...input, currentRevision: currentMarkdown },
-      port,
-    );
-  },
-};
+async function realGeneration(provider: "openai" | "anthropic", model: string) {
+  const port = e2eFixturesEnabled()
+    ? (await import("@/tests/fixtures/openai-responses")).fixtureResponsesPort
+    : (await import("@/server/generation/provider")).createGenerationPort(
+        provider,
+        model,
+      );
+  return {
+    revise: ({ currentMarkdown, ...input }: RevisionInput) =>
+      reviseDocument({ ...input, currentRevision: currentMarkdown }, port),
+  } satisfies RevisionGeneration;
+}
 
 export async function handleRevision({
   projectId,
@@ -49,7 +49,7 @@ export async function handleRevision({
   projectId: string;
   body: unknown;
   store: ProjectStore;
-  generation: RevisionGeneration;
+  generation?: RevisionGeneration;
 }) {
   try {
     const input = revisionRequestSchema.parse(body);
@@ -80,7 +80,9 @@ export async function handleRevision({
       store.transitionProject(projectId, project.status, "generating");
     }
 
-    const generated = await generation.revise({
+    const selectedGeneration =
+      generation ?? (await realGeneration(project.provider, project.model));
+    const generated = await selectedGeneration.revise({
       documentType: input.documentType,
       idea: project.idea,
       technologyPreference: project.technologyPreference,
@@ -96,9 +98,9 @@ export async function handleRevision({
       wordCount: generated.wordCount,
       feedback: input.feedback,
       promptTemplateVersion: generated.promptTemplateVersion,
-      provider: project.provider,
+      provider: generated.provider,
       model: generated.model,
-      providerResponseId: generated.openaiResponseId,
+      providerResponseId: generated.providerResponseId,
     });
     store.selectRevision(projectId, input.documentType, nextRevision.id);
     if (store.getProject(projectId).status === "generating") {
@@ -153,6 +155,5 @@ export async function POST(
     projectId: id,
     body: await request.json(),
     store: getProjectStore(),
-    generation: realGeneration,
   });
 }

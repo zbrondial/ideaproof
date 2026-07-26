@@ -4,14 +4,9 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ZodType } from "zod";
 
-import { loadConfig } from "@/server/config";
 import { AppError } from "@/server/errors";
 
 import type { ResponsesPort } from "./service";
-
-export function createOpenAiClient() {
-  return new OpenAI({ apiKey: loadConfig().openAiApiKey });
-}
 
 function mapOpenAiError(error: unknown): never {
   if (error instanceof OpenAI.AuthenticationError) {
@@ -37,15 +32,21 @@ function mapOpenAiError(error: unknown): never {
   );
 }
 
-export function createResponsesPort(): ResponsesPort {
-  const client = createOpenAiClient();
-  const { openAiModel } = loadConfig();
+export function createOpenAiResponsesPort({
+  apiKey,
+  model,
+}: {
+  apiKey: string;
+  model: string;
+}): ResponsesPort {
+  const client = new OpenAI({ apiKey });
 
   return {
+    provider: "openai",
     async parse(request) {
       try {
         const response = await client.responses.parse({
-          model: openAiModel,
+          model,
           store: false,
           input: request.prompt,
           text: {

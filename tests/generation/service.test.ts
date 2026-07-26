@@ -32,6 +32,7 @@ function validNda(
 
 function ndaResponses(outputs: MutualNdaOutput[]) {
   return {
+    provider: "openai" as const,
     async parse() {
       const parsed = outputs.shift();
       if (!parsed) throw new Error("No fake response remaining");
@@ -47,6 +48,10 @@ it("retries an over-limit document once", async () => {
   expect(result.wordCount).toBeLessThanOrEqual(1_200);
   expect(api.calls).toHaveLength(2);
   expect(JSON.stringify(api.calls[1])).toContain("Shorten this document");
+  expect(result).toMatchObject({
+    provider: "openai",
+    providerResponseId: "resp_2",
+  });
 });
 
 it("fails after the single shortening retry", async () => {

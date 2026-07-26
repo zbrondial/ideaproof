@@ -69,6 +69,7 @@ const nda: MutualNdaOutput = {
 let responseNumber = 0;
 
 export const fixtureResponsesPort: ResponsesPort = {
+  provider: "openai",
   async parse(request) {
     responseNumber += 1;
     const isNdaRevision =
@@ -76,7 +77,7 @@ export const fixtureResponsesPort: ResponsesPort = {
       request.prompt.includes('"revisionFeedback"');
     return {
       id: `resp_fixture_${responseNumber}`,
-      model: "fixture-model",
+      model: "gpt-5.6",
       parsed:
         request.documentType === "specification"
           ? specification

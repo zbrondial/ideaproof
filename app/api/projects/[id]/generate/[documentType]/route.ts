@@ -24,25 +24,26 @@ type Generation = {
   }): Promise<GeneratedDocument>;
 };
 
-const realGeneration: Generation = {
-  specification: async (input) => {
-    const port = e2eFixturesEnabled()
-      ? (await import("@/tests/fixtures/openai-responses"))
-          .fixtureResponsesPort
-      : undefined;
-    return generateDocument(
-      { documentType: "specification", ...input },
-      port,
-    );
-  },
-  nda: async (input) => {
-    const port = e2eFixturesEnabled()
-      ? (await import("@/tests/fixtures/openai-responses"))
-          .fixtureResponsesPort
-      : undefined;
-    return generateDocument({ documentType: "nda", ...input }, port);
-  },
-};
+async function realGeneration(provider: "openai" | "anthropic", model: string) {
+  const port = e2eFixturesEnabled()
+    ? (await import("@/tests/fixtures/openai-responses")).fixtureResponsesPort
+    : (await import("@/server/generation/provider")).createGenerationPort(
+        provider,
+        model,
+      );
+  return {
+    specification: (input: {
+      idea: string;
+      technologyPreference: string;
+    }) =>
+      generateDocument({ documentType: "specification", ...input }, port),
+    nda: (input: {
+      idea: string;
+      ndaPurpose: string;
+      ndaDetails: string;
+    }) => generateDocument({ documentType: "nda", ...input }, port),
+  } satisfies Generation;
+}
 
 function safeError(error: unknown) {
   if (error instanceof AppError) {
@@ -91,18 +92,20 @@ export async function handleGenerate({
   projectId: string;
   documentType: DocumentType;
   store: ProjectStore;
-  generation: Generation;
+  generation?: Generation;
 }) {
   try {
     beginGeneration(store, projectId);
     const project = store.getProject(projectId);
+    const selectedGeneration =
+      generation ?? (await realGeneration(project.provider, project.model));
     const generated =
       documentType === "specification"
-        ? await generation.specification({
+        ? await selectedGeneration.specification({
             idea: project.idea,
             technologyPreference: project.technologyPreference,
           })
-        : await generation.nda({
+        : await selectedGeneration.nda({
             idea: project.idea,
             ndaPurpose: project.ndaPurpose,
             ndaDetails: project.ndaDetails,
@@ -114,9 +117,9 @@ export async function handleGenerate({
       wordCount: generated.wordCount,
       feedback: null,
       promptTemplateVersion: generated.promptTemplateVersion,
-      provider: project.provider,
+      provider: generated.provider,
       model: generated.model,
-      providerResponseId: generated.openaiResponseId,
+      providerResponseId: generated.providerResponseId,
     });
     store.selectRevision(projectId, documentType, revision.id);
 
@@ -170,6 +173,5 @@ export async function POST(
     projectId: id,
     documentType,
     store: getProjectStore(),
-    generation: realGeneration,
   });
 }

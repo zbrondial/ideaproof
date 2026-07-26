@@ -11,8 +11,9 @@ export const validGeneratedSpec = {
   markdown: "# IdeaProof\n\nA concise local proof tool.",
   wordCount: 7,
   promptTemplateVersion: "spec-v1",
+  provider: "openai" as const,
   model: "gpt-5.6",
-  openaiResponseId: "resp_spec",
+  providerResponseId: "resp_spec",
 };
 
 export const validGeneratedNda = {
@@ -20,8 +21,9 @@ export const validGeneratedNda = {
   markdown: "# Mutual Non-Disclosure Agreement\n\nA concise template.",
   wordCount: 7,
   promptTemplateVersion: "nda-v1",
+  provider: "openai" as const,
   model: "gpt-5.6",
-  openaiResponseId: "resp_nda",
+  providerResponseId: "resp_nda",
 };
 
 function testRevision(projectId: string, documentType: DocumentType) {

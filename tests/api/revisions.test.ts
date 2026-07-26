@@ -28,9 +28,14 @@ it("revises only the selected document and preserves history", async () => {
     expect(harness.mockGeneration.revise).not.toHaveBeenCalledWith(
       expect.objectContaining({ currentMarkdown: harness.spec!.content }),
     );
-    expect(
-      harness.store.getRevisions(harness.project.id, "nda"),
-    ).toHaveLength(2);
+    expect(harness.store.getRevisions(harness.project.id, "nda")).toEqual([
+      expect.objectContaining({ version: 1, provider: "openai" }),
+      expect.objectContaining({
+        version: 2,
+        provider: "openai",
+        providerResponseId: "resp_nda",
+      }),
+    ]);
   } finally {
     harness.close();
   }
