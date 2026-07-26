@@ -48,7 +48,7 @@ export default function HowItWorksPage() {
       </ol>
       <div className="how-actions">
         <Link className="button" href="/projects/new">
-          Protect an idea
+          Timestamp an idea
         </Link>
         <Link className="button button-secondary" href="/verify">
           Verify a proof

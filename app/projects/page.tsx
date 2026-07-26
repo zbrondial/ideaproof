@@ -37,7 +37,7 @@ export default async function ProjectsPage({
           <p>Your ideas, generated documents, and proof status.</p>
         </div>
         <Link className="button" href="/projects/new">
-          Protect a new idea
+          Timestamp a new idea
         </Link>
       </div>
       <form className="filter-bar" action="/projects">

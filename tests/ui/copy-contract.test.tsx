@@ -22,8 +22,13 @@ it("renders the canonical homepage and navigation copy in order", () => {
   );
 
   expect(html).toContain("Timestamp your <span>idea</span>.");
-  expect(html).toContain("Own the moment it happened.");
+  expect(html).toContain("Mark the moment it happened.");
+  expect(html).toContain(
+    "Create a technical specification, sample NDA, and timestamped proof.",
+  );
   expect(html).not.toContain("Local-first idea protection");
+  expect(html).toContain("Timestamp an idea");
+  expect(html).not.toMatch(/\bprotect\b/i);
   expect(html).toContain("sample NDA");
   expect(html).not.toMatch(/mutual NDA|Mutual Non-Disclosure Agreement/i);
   expect(html.indexOf("Proof Logs")).toBeLessThan(
@@ -44,6 +49,8 @@ it("renders the approved digital-fingerprint explanation", async () => {
 
   expect(html).toContain("digital fingerprint of each approved PDF");
   expect(html).toContain("Your PDFs stay on your machine");
+  expect(html).toContain("Timestamp an idea");
+  expect(html).not.toMatch(/\bprotect\b/i);
   expect(html).not.toMatch(/Bitcoin|opaque commitment|blockchain/i);
 });
 

@@ -50,7 +50,7 @@ export function AppNav() {
             href="/projects/new"
             onClick={() => setOpen(false)}
           >
-            Protect an idea
+            Timestamp an idea
           </Link>
         </div>
       </nav>

@@ -16,7 +16,7 @@ export default function HomePage() {
     ],
     [
       "Approve the documents",
-      "Confirm the technical specification and NDA are ready to protect.",
+      "Confirm the technical specification and NDA are ready to timestamp.",
     ],
     [
       "Proof created",
@@ -31,16 +31,15 @@ export default function HomePage() {
           <h1>
             Timestamp your <span>idea</span>.
             <br />
-            Own the moment it happened.
+            Mark the moment it happened.
           </h1>
           <p className="lede">
-            Turn a software idea into a technical specification and sample NDA,
-            review the generated documents, and create a timestamped proof of
-            the exact version you approved.
+            Create a technical specification, sample NDA, and timestamped
+            proof.
           </p>
           <div className="hero-actions">
             <Link className="button" href="/projects/new">
-              Protect an idea
+              Timestamp an idea
             </Link>
             <Link className="button button-secondary" href="/verify">
               Verify a proof

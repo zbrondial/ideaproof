@@ -10,11 +10,11 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
       <div className="empty-state">
         <h2>No proof logs yet</h2>
         <p>
-          Protect an idea to create your first document and proof record, or
+          Timestamp an idea to create your first document and proof record, or
           adjust the current filters.
         </p>
         <Link className="button button-secondary" href="/projects/new">
-          Protect an idea
+          Timestamp an idea
         </Link>
       </div>
     );
