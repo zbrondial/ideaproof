@@ -17,6 +17,7 @@ export default defineConfig({
       IDEAPROOF_DATA_DIR: "./test-results/e2e-data",
       IDEAPROOF_E2E_FIXTURES: "1",
       OPENAI_API_KEY: "e2e-fixture-key",
+      ANTHROPIC_API_KEY: "e2e-fixture-key",
     },
   },
   projects: [

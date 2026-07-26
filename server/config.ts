@@ -43,17 +43,19 @@ export function requireProviderConfig(
   model: string,
 ): ProviderConfig {
   const available = listConfiguredProviders().find(
-    (item) => item.provider === provider && item.model === model,
+    (item) => item.provider === provider,
   );
   if (!available) {
     throw new AppError(
       "SETUP_MODEL_UNAVAILABLE",
-      "Restore the API key and model configured for this project.",
+      "Restore the API key configured for this project.",
       503,
     );
   }
   return {
-    ...available,
+    provider,
+    model,
+    label: `${provider === "openai" ? "OpenAI" : "Claude"} — ${model}`,
     apiKey:
       provider === "openai"
         ? process.env.OPENAI_API_KEY!.trim()

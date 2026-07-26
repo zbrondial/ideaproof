@@ -33,6 +33,7 @@ function validNda(
 function ndaResponses(outputs: MutualNdaOutput[]) {
   return {
     provider: "openai" as const,
+    model: "gpt-5.6",
     async parse() {
       const parsed = outputs.shift();
       if (!parsed) throw new Error("No fake response remaining");
@@ -40,6 +41,36 @@ function ndaResponses(outputs: MutualNdaOutput[]) {
     },
   };
 }
+
+it("keeps the requested project model when a provider resolves an alias", async () => {
+  const canonicalResponse = {
+    provider: "openai" as const,
+    model: "gpt-5.6",
+    async parse() {
+      return {
+        id: "resp_canonical",
+        model: "gpt-5.6-2026-07-01",
+        parsed: specWithWords(30),
+      };
+    },
+  };
+
+  const generated = await generateDocument(
+    validSpecInput,
+    canonicalResponse,
+  );
+  const revised = await reviseDocument(
+    {
+      ...validSpecInput,
+      currentRevision: generated.markdown,
+      feedback: "Make it clearer.",
+    },
+    canonicalResponse,
+  );
+
+  expect(generated.model).toBe("gpt-5.6");
+  expect(revised.model).toBe("gpt-5.6");
+});
 
 it("retries an over-limit document once", async () => {
   const api = fakeResponses([specWithWords(1_001), specWithWords(900)]);

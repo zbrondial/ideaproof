@@ -68,6 +68,7 @@ function validateDocumentContent(
 
 export type ResponsesPort = {
   provider: AiProvider;
+  model: string;
   parse(request: {
     documentType: GenerationInput["documentType"];
     prompt: string;
@@ -152,7 +153,7 @@ ${SHORTEN_INSTRUCTION}`,
     wordCount,
     promptTemplateVersion: request.promptTemplateVersion,
     provider: api.provider,
-    model: response.model,
+    model: api.model,
     providerResponseId: response.id,
   };
 }
@@ -205,7 +206,7 @@ ${SHORTEN_INSTRUCTION}`,
     wordCount,
     promptTemplateVersion: base.promptTemplateVersion,
     provider: api.provider,
-    model: response.model,
+    model: api.model,
     providerResponseId: response.id,
   };
 }

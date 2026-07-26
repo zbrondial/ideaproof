@@ -100,7 +100,7 @@ test("capture public README screens", async ({ page }) => {
     /\/approve\?specificationRevisionId=.+&ndaRevisionId=.+$/,
   );
   await expect(
-    page.getByRole("heading", { name: "Lock the exact documents you reviewed." }),
+    page.getByRole("heading", { name: "Approve these documents?" }),
   ).toBeVisible();
   await page.screenshot({
     path: "/tmp/ideaproof-approve.png",
@@ -110,8 +110,54 @@ test("capture public README screens", async ({ page }) => {
     .getByRole("button", { name: "Approve and create proof" })
     .click();
   await expect(page.getByText("Pending confirmation").first()).toBeVisible();
+  const proofUrl = page.url();
   await page.screenshot({
     path: "/tmp/ideaproof-proof.png",
     fullPage: true,
   });
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.setViewportSize({ width: 375, height: 812 });
+  for (const url of [
+    "/",
+    "/projects",
+    "/projects/new",
+    "/verify",
+    "/how-it-works",
+    "/terms",
+    "/setup",
+    reviewUrl,
+    proofUrl,
+  ]) {
+    await page.goto(url);
+    await expect(page.locator("h1").first()).toBeVisible();
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth >
+          document.documentElement.clientWidth,
+      ),
+      `${url} should not overflow at 375px`,
+    ).toBe(false);
+  }
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Toggle navigation" }).click();
+  await expect(
+    page.getByRole("link", { name: "How it works" }),
+  ).toBeVisible();
+
+  // A 720 CSS-pixel viewport approximates a 1440px desktop at 200% zoom.
+  await page.setViewportSize({ width: 720, height: 500 });
+  await page.goto("/");
+  await expect(
+    page.getByRole("heading", { name: /Timestamp your idea/ }),
+  ).toBeVisible();
+  expect(
+    await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth >
+        document.documentElement.clientWidth,
+    ),
+  ).toBe(false);
 });

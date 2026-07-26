@@ -1,5 +1,6 @@
 import { writeFile } from "node:fs/promises";
 
+import type { AiProvider } from "@/server/config";
 import type { ResponsesPort } from "@/server/generation/service";
 import type {
   MutualNdaOutput,
@@ -50,30 +51,40 @@ const nda: MutualNdaOutput = {
     "Party A signature: ______________________\n\nParty B signature: ______________________",
 };
 
-let responseNumber = 0;
-
-export const fixtureResponsesPort: ResponsesPort = {
-  provider: "openai",
-  async parse(request) {
-    responseNumber += 1;
-    const isNdaRevision =
-      request.documentType === "nda" &&
-      request.prompt.includes('"revisionFeedback"');
-    return {
-      id: `resp_fixture_${responseNumber}`,
-      model: "gpt-5.6",
-      parsed:
-        request.documentType === "specification"
-          ? specification
-          : isNdaRevision
-            ? {
-                ...nda,
-                obligations: `${nda.obligations} Revision two uses shorter sentences.`,
-              }
-            : nda,
-    };
-  },
+const responseNumbers: Record<AiProvider, number> = {
+  openai: 0,
+  anthropic: 0,
 };
+
+export function createFixtureResponsesPort(
+  provider: AiProvider,
+  model: string,
+): ResponsesPort {
+  return {
+    provider,
+    model,
+    async parse(request) {
+      responseNumbers[provider] += 1;
+      const isNdaRevision =
+        request.documentType === "nda" &&
+        request.prompt.includes('"revisionFeedback"');
+      const prefix = provider === "openai" ? "resp" : "msg";
+      return {
+        id: `${prefix}_fixture_${responseNumbers[provider]}`,
+        model,
+        parsed:
+          request.documentType === "specification"
+            ? specification
+            : isNdaRevision
+              ? {
+                  ...nda,
+                  obligations: `${nda.obligations} Revision two uses shorter sentences.`,
+                }
+              : nda,
+      };
+    },
+  };
+}
 
 export async function fixtureStampPdf(pdfPath: string) {
   const otsPath = `${pdfPath}.ots`;

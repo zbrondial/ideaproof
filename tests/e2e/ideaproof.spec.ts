@@ -3,10 +3,25 @@ import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { strFromU8, unzipSync } from "fflate";
 
-test("create, generate, revise, approve, download, and verify", async ({
-  page,
-}, testInfo) => {
+for (const provider of [
+  {
+    name: "OpenAI",
+    label: "OpenAI — gpt-5.6",
+    provider: "openai",
+    model: "gpt-5.6",
+  },
+  {
+    name: "Claude",
+    label: "Claude — claude-opus-4-8",
+    provider: "anthropic",
+    model: "claude-opus-4-8",
+  },
+] as const) {
+  test(`create, revise, approve, and verify with ${provider.name}`, async ({
+    page,
+  }, testInfo) => {
   await page.goto("/projects/new");
+  await page.getByLabel(provider.label).check();
   await page
     .getByLabel("Raw software idea")
     .fill(
@@ -73,11 +88,18 @@ test("create, generate, revise, approve, download, and verify", async ({
   expect(manifest.documents).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        provider: "openai",
-        model: "gpt-5.6",
+        provider: provider.provider,
+        model: provider.model,
       }),
     ]),
   );
+  expect(
+    manifest.documents.every(
+      (document: { provider: string; model: string }) =>
+        document.provider === provider.provider &&
+        document.model === provider.model,
+    ),
+  ).toBe(true);
   expect(
     manifest.documents.find(
       (document: { type: string }) => document.type === "nda",
@@ -102,4 +124,5 @@ test("create, generate, revise, approve, download, and verify", async ({
   await expect(
     page.getByRole("heading", { name: "Proof confirmed" }),
   ).toBeVisible();
-});
+  });
+}

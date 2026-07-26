@@ -29,7 +29,9 @@ type RevisionGeneration = {
 
 async function realGeneration(provider: "openai" | "anthropic", model: string) {
   const port = e2eFixturesEnabled()
-    ? (await import("@/tests/fixtures/openai-responses")).fixtureResponsesPort
+    ? (
+        await import("@/tests/fixtures/openai-responses")
+      ).createFixtureResponsesPort(provider, model)
     : (await import("@/server/generation/provider")).createGenerationPort(
         provider,
         model,

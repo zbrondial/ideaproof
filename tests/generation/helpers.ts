@@ -30,6 +30,7 @@ export function fakeResponses(outputs: TechnicalSpecificationOutput[]) {
   const calls: unknown[] = [];
   return {
     provider: "openai" as const,
+    model: "gpt-5.6",
     calls,
     async parse(request: unknown) {
       calls.push(request);

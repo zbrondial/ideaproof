@@ -6,9 +6,10 @@ idea into two concise, reviewable documents:
 - a technical specification;
 - a simple mutual NDA template.
 
-After review, IdeaProof renders the selected revisions as deterministic PDFs,
-hashes their exact bytes, and submits timestamp commitments with
-OpenTimestamps. It runs in your browser at
+After review, IdeaProof renders the selected revisions as PDFs and creates a
+digital fingerprint of each exact file. OpenTimestamps receives those
+fingerprints—not the PDFs or their contents—and returns matching proof files.
+IdeaProof runs in your browser at
 [http://localhost:3000](http://localhost:3000), while the application and its
 SQLite data remain on your machine.
 
@@ -19,20 +20,21 @@ SQLite data remain on your machine.
 ## Important limits
 
 IdeaProof does not prove ownership, authorship, patent rights, or legal
-validity. A confirmed timestamp shows only that exact file bytes existed by a
-certain time. The NDA is a template, not legal advice, and AI-generated content
-can contain errors. Review both documents before approval and consult a
-qualified lawyer when appropriate.
+validity. A confirmed timestamp shows only that the digital fingerprint of an
+exact PDF existed by a certain time. The sample NDA is not legal advice, and
+AI-generated content can contain errors. Review both documents before approval
+and consult a qualified lawyer when appropriate.
 
-Document generation sends the required idea and NDA content to OpenAI using
-your API key. Verification does not send uploaded PDFs to OpenAI.
+Document generation sends the required idea and NDA purpose to the AI provider
+you select using your API key. Local verification does not send uploaded PDFs
+to an AI provider or OpenTimestamps.
 
 ## Requirements
 
 - Node.js 24.14 or newer
 - npm 10 or newer
 - Python 3.9 or newer
-- an OpenAI API key
+- an OpenAI API key, an Anthropic API key, or both
 
 ## Install and run
 
@@ -55,10 +57,12 @@ your API key. Verification does not send uploaded PDFs to OpenAI.
    ```dotenv
    OPENAI_API_KEY=
    OPENAI_MODEL=gpt-5.6
+   ANTHROPIC_API_KEY=
+   ANTHROPIC_MODEL=claude-opus-4-8
    IDEAPROOF_DATA_DIR=./data
    ```
 
-   Add your API key after the equals sign.
+   Add at least one API key after its equals sign. Leave the unused key blank.
 
 5. Install the Node and project-local OpenTimestamps dependencies:
 
@@ -80,6 +84,27 @@ The API key stays in the server process and is not returned to the browser,
 stored in SQLite, or included in proof packages. Keep `.env` private; it is
 ignored by Git.
 
+## Choosing an AI provider
+
+IdeaProof shows only the providers configured in `.env`:
+
+- OpenAI key only: new projects use OpenAI.
+- Anthropic key only: new projects use Claude.
+- Both keys: choose OpenAI or Claude when creating each project; OpenAI is
+  selected by default.
+- No keys: document generation stays disabled and Setup explains what is
+  missing.
+
+One provider and model are fixed for each project. The same choice generates
+both documents and every later revision, so a project cannot silently switch
+providers. OpenAI defaults to `gpt-5.6`; Anthropic defaults to
+`claude-opus-4-8`. You may change either model variable for future projects,
+but the named model must be available to your API account.
+
+The generated technical specification is limited to 1,000 words. The sample
+NDA is limited to 700 words and deliberately leaves Party A, Party B, Effective
+Date, and Confidentiality Period blank unless you provide those facts.
+
 ## Development
 
 ```bash
@@ -91,8 +116,9 @@ npm run test:e2e
 npm run verify
 ```
 
-The end-to-end suite uses development-only deterministic fixtures. It does not
-call OpenAI or public timestamp calendars.
+The end-to-end suite exercises both provider choices with development-only
+deterministic fixtures. It does not call OpenAI, Anthropic, or public timestamp
+calendars.
 
 ## Local data and backups
 
@@ -116,11 +142,11 @@ Each approved ZIP contains only:
 - `manifest.json`
 
 The manifest identifies the approved revisions, prompt versions, word counts,
-models, PDF SHA-256 hashes, and approval time. It excludes intake text, revision
-feedback, API keys, database files, and internal paths.
+providers, models, PDF digital fingerprints, and approval time. It excludes
+intake text, revision feedback, API keys, database files, and internal paths.
 
 OpenTimestamps confirmation can take hours. Use **Check confirmation** on the
-proof page later. To verify independently in IdeaProof, open **Verify** and
+proof page later. To verify independently in IdeaProof, open **Verify proof** and
 select a PDF together with its matching `.ots` file. Any change to the PDF
 causes a mismatch.
 
@@ -131,7 +157,7 @@ the primary workflow. If Docker is available:
 
 ```bash
 cp .env.example .env
-# Add OPENAI_API_KEY to .env
+# Add OPENAI_API_KEY, ANTHROPIC_API_KEY, or both to .env
 docker compose up --build
 ```
 
@@ -156,15 +182,15 @@ npm run setup
 
 On Windows, `py -3 --version` is also supported.
 
-### OpenAI generation fails
+### AI generation fails
 
-Check `OPENAI_API_KEY` and `OPENAI_MODEL` in `.env`, then restart IdeaProof.
+Check the selected provider's key and model in `.env`, then restart IdeaProof.
 Authentication, rate-limit, refusal, malformed-output, and length errors are
 reported without logging the key or raw response.
 
 ### Proof remains pending
 
-This is expected until a Bitcoin attestation becomes available. Wait and use
+This can be normal while OpenTimestamps completes confirmation. Wait and use
 **Check confirmation** again. Do not edit the PDF or `.ots` file.
 
 ### Port 3000 is already in use

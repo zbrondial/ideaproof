@@ -43,6 +43,7 @@ export function createOpenAiResponsesPort({
 
   return {
     provider: "openai",
+    model,
     async parse(request) {
       try {
         const response = await client.responses.parse({

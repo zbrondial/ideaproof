@@ -63,6 +63,7 @@ export function createAnthropicResponsesPort({
 
   return {
     provider: "anthropic",
+    model,
     async parse(request) {
       try {
         const response = await send({

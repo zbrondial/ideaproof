@@ -42,6 +42,7 @@ runtime packages. License texts remain in the corresponding package distribution
 
 | Package | Version | License |
 | --- | ---: | --- |
+| `@anthropic-ai/sdk` | 0.115.0 | MIT |
 | `@emnapi/core` | 1.11.1 | MIT |
 | `@emnapi/runtime` | 1.11.2 | MIT |
 | `@emnapi/wasi-threads` | 1.2.2 | MIT |
