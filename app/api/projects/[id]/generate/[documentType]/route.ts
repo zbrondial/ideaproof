@@ -1,0 +1,147 @@
+import { NextResponse } from "next/server";
+
+import {
+  getProjectStore,
+  type DocumentType,
+} from "@/server/db/projects";
+import { AppError } from "@/server/errors";
+import {
+  generateDocument,
+  type GeneratedDocument,
+} from "@/server/generation/service";
+
+type ProjectStore = ReturnType<typeof getProjectStore>;
+type Generation = {
+  specification(input: {
+    idea: string;
+    technologyPreference: string;
+  }): Promise<GeneratedDocument>;
+  nda(input: {
+    idea: string;
+    ndaPurpose: string;
+    ndaDetails: string;
+  }): Promise<GeneratedDocument>;
+};
+
+const realGeneration: Generation = {
+  specification: (input) =>
+    generateDocument({ documentType: "specification", ...input }),
+  nda: (input) => generateDocument({ documentType: "nda", ...input }),
+};
+
+function safeError(error: unknown) {
+  if (error instanceof AppError) {
+    return NextResponse.json(
+      { code: error.code, message: error.message, retryable: error.retryable },
+      { status: error.status },
+    );
+  }
+  return NextResponse.json(
+    {
+      code: "GENERATION_FAILED",
+      message: "The document could not be generated.",
+      retryable: true,
+    },
+    { status: 500 },
+  );
+}
+
+function beginGeneration(store: ProjectStore, projectId: string) {
+  const status = store.getProject(projectId).status;
+  if (status === "draft" || status === "review" || status === "failed") {
+    store.transitionProject(projectId, status, "generating");
+  } else if (status !== "generating") {
+    throw new AppError(
+      "PROJECT_STATE_INVALID",
+      "This project cannot generate documents in its current state.",
+      409,
+    );
+  }
+}
+
+export async function handleGenerate({
+  projectId,
+  documentType,
+  store,
+  generation,
+}: {
+  projectId: string;
+  documentType: DocumentType;
+  store: ProjectStore;
+  generation: Generation;
+}) {
+  try {
+    beginGeneration(store, projectId);
+    const project = store.getProject(projectId);
+    const generated =
+      documentType === "specification"
+        ? await generation.specification({
+            idea: project.idea,
+            technologyPreference: project.technologyPreference,
+          })
+        : await generation.nda({
+            idea: project.idea,
+            ndaPurpose: project.ndaPurpose,
+            ndaDetails: project.ndaDetails,
+          });
+    const revision = store.addRevision({
+      projectId,
+      documentType,
+      content: generated.markdown,
+      wordCount: generated.wordCount,
+      feedback: null,
+      promptTemplateVersion: generated.promptTemplateVersion,
+      model: generated.model,
+      openaiResponseId: generated.openaiResponseId,
+    });
+    store.selectRevision(projectId, documentType, revision.id);
+
+    const detail = store.getProject(projectId);
+    const hasBoth =
+      detail.revisions.some(
+        (item) => item.documentType === "specification",
+      ) && detail.revisions.some((item) => item.documentType === "nda");
+    if (hasBoth && detail.status === "generating") {
+      store.transitionProject(projectId, "generating", "review");
+    }
+
+    return NextResponse.json(
+      {
+        documentType,
+        revisionId: revision.id,
+        version: revision.version,
+        wordCount: revision.wordCount,
+      },
+      { status: 201 },
+    );
+  } catch (error) {
+    const current = store.getProject(projectId);
+    if (current.status === "generating") {
+      store.transitionProject(projectId, "generating", "failed");
+    }
+    return safeError(error);
+  }
+}
+
+export async function POST(
+  _request: Request,
+  {
+    params,
+  }: {
+    params: Promise<{ id: string; documentType: string }>;
+  },
+) {
+  const { id, documentType } = await params;
+  if (documentType !== "specification" && documentType !== "nda") {
+    return NextResponse.json(
+      { code: "DOCUMENT_TYPE_INVALID", message: "Unknown document type." },
+      { status: 404 },
+    );
+  }
+  return handleGenerate({
+    projectId: id,
+    documentType,
+    store: getProjectStore(),
+    generation: realGeneration,
+  });
+}
