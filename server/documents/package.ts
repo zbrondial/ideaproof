@@ -38,9 +38,9 @@ const publicFiles = [
   "technical-specification.md",
   "technical-specification.pdf",
   "technical-specification.pdf.ots",
-  "mutual-nda.md",
-  "mutual-nda.pdf",
-  "mutual-nda.pdf.ots",
+  "sample-nda.md",
+  "sample-nda.pdf",
+  "sample-nda.pdf.ots",
 ] as const;
 
 export function sha256(bytes: Uint8Array): string {

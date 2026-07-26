@@ -43,7 +43,7 @@ function reviewProject(store: ReturnType<typeof openTestStore>) {
     projectId: project.id,
     documentType: "nda",
     content:
-      "# Mutual Non-Disclosure Agreement\n\nParty A: ______________________",
+      "# Sample Non-Disclosure Agreement\n\nParty A: ______________________",
     wordCount: 6,
     feedback: null,
     promptTemplateVersion: "nda-v1",
@@ -124,9 +124,9 @@ it("approves exact revisions and writes an immutable proof package", async () =>
     ).toHaveLength(1);
     expect(Object.keys(zip).sort()).toEqual([
       "manifest.json",
-      "mutual-nda.md",
-      "mutual-nda.pdf",
-      "mutual-nda.pdf.ots",
+      "sample-nda.md",
+      "sample-nda.pdf",
+      "sample-nda.pdf.ots",
       "technical-specification.md",
       "technical-specification.pdf",
       "technical-specification.pdf.ots",
@@ -141,6 +141,9 @@ it("approves exact revisions and writes an immutable proof package", async () =>
         },
         {
           type: "nda",
+          markdownFile: "sample-nda.md",
+          pdfFile: "sample-nda.pdf",
+          proofFile: "sample-nda.pdf.ots",
           provider: "openai",
           model: "gpt-5.6",
         },

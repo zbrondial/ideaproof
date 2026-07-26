@@ -24,6 +24,8 @@ it("renders the canonical homepage and navigation copy in order", () => {
   expect(html).toContain("Timestamp your <span>idea</span>.");
   expect(html).toContain("Own the moment it happened.");
   expect(html).not.toContain("Local-first idea protection");
+  expect(html).toContain("sample NDA");
+  expect(html).not.toMatch(/mutual NDA|Mutual Non-Disclosure Agreement/i);
   expect(html.indexOf("Proof Logs")).toBeLessThan(
     html.indexOf("Verify proof"),
   );
@@ -62,6 +64,10 @@ it("shows only configured models and defaults to OpenAI when both are available"
     /<input(?=[^>]*name="provider")(?=[^>]*value="openai")(?=[^>]*checked="")[^>]*>/,
   );
   expect(both).toContain("Claude — claude-opus-4-8");
+  expect(both).toContain(
+    "Generate technical specification and sample NDA",
+  );
+  expect(both).not.toMatch(/mutual NDA|Mutual Non-Disclosure Agreement/i);
   expect(both).toContain('<label for="ownerName">Owner’s full name</label>');
   expect(both).toContain(
     "This name appears on the technical specification and becomes part of its timestamped PDF.",

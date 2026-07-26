@@ -77,7 +77,7 @@ export function ReviewWorkspace({
             >
               {type === "specification"
                 ? "Technical specification"
-                : "Mutual NDA"}
+                : "Sample NDA"}
             </button>
           ))}
         </div>

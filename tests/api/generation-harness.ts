@@ -18,7 +18,7 @@ export const validGeneratedSpec = {
 
 export const validGeneratedNda = {
   documentType: "nda" as const,
-  markdown: "# Mutual Non-Disclosure Agreement\n\nA concise template.",
+  markdown: "# Sample Non-Disclosure Agreement\n\nA concise template.",
   wordCount: 7,
   promptTemplateVersion: "nda-v1",
   provider: "openai" as const,

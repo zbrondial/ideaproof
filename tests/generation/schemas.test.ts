@@ -6,6 +6,7 @@ import {
 } from "@/server/generation/schemas";
 import {
   countWords,
+  toNdaMarkdown,
   toSpecificationMarkdown,
 } from "@/server/generation/word-count";
 
@@ -32,9 +33,8 @@ describe("generation schemas", () => {
   });
 
   it("allows blank NDA facts but requires the purpose and notice", () => {
-    expect(
-      mutualNdaSchema.parse({
-        title: "Mutual Non-Disclosure Agreement",
+    const nda = mutualNdaSchema.parse({
+        title: "Sample Non-Disclosure Agreement",
         notice:
           "Not legal advice. Review this template with a qualified attorney before use.",
         partyA: "",
@@ -47,8 +47,11 @@ describe("generation schemas", () => {
         confidentialityPeriod: "",
         returnOrDestruction: "Return or destroy it on request.",
         signatures: "Party A: ______\nParty B: ______",
-      }).partyA,
-    ).toBe("");
+      });
+    expect(nda.partyA).toBe("");
+    expect(toNdaMarkdown(nda)).toMatch(
+      /^# Sample Non-Disclosure Agreement/m,
+    );
   });
 
   it("renders the five canonical specification sections in order", () => {

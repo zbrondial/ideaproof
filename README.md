@@ -4,7 +4,7 @@ IdeaProof is an open-source, local-first web app for turning an early product
 idea into two concise, reviewable documents:
 
 - a technical specification;
-- a simple mutual NDA template.
+- a sample NDA template.
 
 After review, IdeaProof renders the selected revisions as PDFs and creates a
 digital fingerprint of each exact file. OpenTimestamps receives those
@@ -136,9 +136,9 @@ Each approved ZIP contains only:
 - `technical-specification.md`
 - `technical-specification.pdf`
 - `technical-specification.pdf.ots`
-- `mutual-nda.md`
-- `mutual-nda.pdf`
-- `mutual-nda.pdf.ots`
+- `sample-nda.md`
+- `sample-nda.pdf`
+- `sample-nda.pdf.ots`
 - `manifest.json`
 
 The manifest identifies the approved revisions, prompt versions, word counts,

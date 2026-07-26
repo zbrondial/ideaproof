@@ -16,7 +16,7 @@ record before discussing it with collaborators.
 ## Product Purpose
 
 IdeaProof turns a short idea description into a technical specification and a
-simple mutual NDA template, preserves revisions, and timestamps the exact
+sample NDA template, preserves revisions, and timestamps the exact
 approved files. Success means a user can move from idea to verifiable package
 without an account or hosted IdeaProof service.
 

@@ -13,7 +13,7 @@ function validNda(
   confidentialInformation = "Non-public product information.",
 ): MutualNdaOutput {
   return {
-    title: "Mutual Non-Disclosure Agreement",
+    title: "Sample Non-Disclosure Agreement",
     notice:
       "Not legal advice. Review this template with a qualified attorney before use.",
     partyA: "",

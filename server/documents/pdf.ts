@@ -45,7 +45,7 @@ export async function renderPdf(input: {
   document.setAuthor("IdeaProof");
   document.setSubject(
     input.documentType === "nda"
-      ? "Approved mutual NDA"
+      ? "Approved sample NDA"
       : "Approved technical specification",
   );
   document.setCreator("IdeaProof");

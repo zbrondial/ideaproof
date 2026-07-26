@@ -10,7 +10,7 @@ import type {
 const specification: TechnicalSpecificationOutput = {
   title: "IdeaProof local proof application",
   productOverview:
-    "A local web application that turns an early product idea into a concise technical specification and a simple mutual NDA, then timestamps the approved PDFs.",
+    "A local web application that turns an early product idea into a concise technical specification and a sample NDA, then timestamps the approved PDFs.",
   coreFeatures: [
     "Generate two concise documents from supplied facts",
     "Keep project records on the user's machine",
@@ -31,7 +31,7 @@ const specification: TechnicalSpecificationOutput = {
 };
 
 const nda: MutualNdaOutput = {
-  title: "Mutual Non-Disclosure Agreement",
+  title: "Sample Non-Disclosure Agreement",
   notice:
     "Not legal advice. Review this template with a qualified attorney before use.",
   partyA: "",

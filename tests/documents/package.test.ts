@@ -20,9 +20,9 @@ it("packages only approved public artifacts", () => {
     "technical-specification.md": bytes,
     "technical-specification.pdf": bytes,
     "technical-specification.pdf.ots": bytes,
-    "mutual-nda.md": bytes,
-    "mutual-nda.pdf": bytes,
-    "mutual-nda.pdf.ots": bytes,
+    "sample-nda.md": bytes,
+    "sample-nda.pdf": bytes,
+    "sample-nda.pdf.ots": bytes,
   };
   const manifest: ManifestV1 = {
     schemaVersion: 1,
@@ -36,9 +36,9 @@ it("packages only approved public artifacts", () => {
 
   expect(Object.keys(zip).sort()).toEqual([
     "manifest.json",
-    "mutual-nda.md",
-    "mutual-nda.pdf",
-    "mutual-nda.pdf.ots",
+    "sample-nda.md",
+    "sample-nda.pdf",
+    "sample-nda.pdf.ots",
     "technical-specification.md",
     "technical-specification.pdf",
     "technical-specification.pdf.ots",
@@ -54,9 +54,9 @@ it("records the selected provider and model in version 2 manifests", () => {
     "technical-specification.md": bytes,
     "technical-specification.pdf": bytes,
     "technical-specification.pdf.ots": bytes,
-    "mutual-nda.md": bytes,
-    "mutual-nda.pdf": bytes,
-    "mutual-nda.pdf.ots": bytes,
+    "sample-nda.md": bytes,
+    "sample-nda.pdf": bytes,
+    "sample-nda.pdf.ots": bytes,
   };
   const manifest: ManifestV2 = {
     schemaVersion: 2,

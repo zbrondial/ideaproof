@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { DocumentPreview } from "@/components/document-preview";
 import { getProjectStore } from "@/server/db/projects";
+import { withOwnerDeclaration } from "@/server/documents/attribution";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ export default async function HistoryPage({
           <details key={revision.id}>
             <summary>
               <span>
-                {revision.documentType === "nda" ? "Mutual NDA" : "Specification"}{" "}
+                {revision.documentType === "nda" ? "Sample NDA" : "Specification"}{" "}
                 · Version {revision.version}
               </span>
               <span>{revision.wordCount} words</span>
@@ -65,7 +66,16 @@ export default async function HistoryPage({
                 <dd>{revision.feedback ?? "Initial generation"}</dd>
               </div>
             </dl>
-            <DocumentPreview markdown={revision.content} />
+            <DocumentPreview
+              markdown={
+                revision.documentType === "specification"
+                  ? withOwnerDeclaration(
+                      revision.content,
+                      project.ownerName,
+                    )
+                  : revision.content
+              }
+            />
           </details>
         ))}
       </div>

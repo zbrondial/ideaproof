@@ -96,9 +96,9 @@ async function packageApprovedProject(
       {
         type: "nda",
         revisionId: nda.id,
-        markdownFile: "mutual-nda.md",
-        pdfFile: "mutual-nda.pdf",
-        proofFile: "mutual-nda.pdf.ots",
+        markdownFile: "sample-nda.md",
+        pdfFile: "sample-nda.pdf",
+        proofFile: "sample-nda.pdf.ots",
         sha256: ndaArtifact.sha256,
         wordCount: nda.wordCount,
         promptTemplateVersion: nda.promptTemplateVersion,
@@ -114,9 +114,9 @@ async function packageApprovedProject(
       ),
       "technical-specification.pdf": specificationPdf,
       "technical-specification.pdf.ots": specificationProof,
-      "mutual-nda.md": new TextEncoder().encode(nda.content),
-      "mutual-nda.pdf": ndaPdf,
-      "mutual-nda.pdf.ots": ndaProof,
+      "sample-nda.md": new TextEncoder().encode(nda.content),
+      "sample-nda.pdf": ndaPdf,
+      "sample-nda.pdf.ots": ndaProof,
     },
     manifest,
   );
@@ -286,9 +286,9 @@ export async function handleApprove({
         ots: join(relativeDirectory, "technical-specification.pdf.ots"),
       },
       nda: {
-        markdown: join(relativeDirectory, "mutual-nda.md"),
-        pdf: join(relativeDirectory, "mutual-nda.pdf"),
-        ots: join(relativeDirectory, "mutual-nda.pdf.ots"),
+        markdown: join(relativeDirectory, "sample-nda.md"),
+        pdf: join(relativeDirectory, "sample-nda.pdf"),
+        ots: join(relativeDirectory, "sample-nda.pdf.ots"),
       },
       package: join(relativeDirectory, "ideaproof-package.zip"),
     };
@@ -299,9 +299,9 @@ export async function handleApprove({
         ots: join(artifactDirectory, "technical-specification.pdf.ots"),
       },
       nda: {
-        markdown: join(artifactDirectory, "mutual-nda.md"),
-        pdf: join(artifactDirectory, "mutual-nda.pdf"),
-        ots: join(artifactDirectory, "mutual-nda.pdf.ots"),
+        markdown: join(artifactDirectory, "sample-nda.md"),
+        pdf: join(artifactDirectory, "sample-nda.pdf"),
+        ots: join(artifactDirectory, "sample-nda.pdf.ots"),
       },
       package: join(artifactDirectory, "ideaproof-package.zip"),
     };
@@ -317,7 +317,7 @@ export async function handleApprove({
         documentType: "specification",
       }),
       renderPdf({
-        title: "Mutual Non-Disclosure Agreement",
+        title: "Sample Non-Disclosure Agreement",
         markdown: nda.content,
         approvedAt,
         documentType: "nda",

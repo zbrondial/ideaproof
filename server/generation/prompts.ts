@@ -1,5 +1,5 @@
 export const SPEC_PROMPT_VERSION = "spec-v3";
-export const NDA_PROMPT_VERSION = "nda-v2";
+export const NDA_PROMPT_VERSION = "nda-v3";
 
 function userFacts(value: object) {
   return `BEGIN USER FACTS
@@ -40,7 +40,7 @@ export function buildNdaPrompt(input: {
   ndaPurpose: string;
   ndaDetails?: string;
 }) {
-  return `${instructions("mutual NDA template", 700)}
+  return `${instructions("sample NDA template", 700)}
 
 Use plain, balanced language. This is not legal advice.
 Missing facts must remain exactly as labeled blanks:

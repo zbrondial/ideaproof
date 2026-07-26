@@ -17,7 +17,7 @@ type GenerationStep =
 const messages: Record<GenerationStep, string> = {
   preparing: "Organizing the details you supplied.",
   "generating-specification": "Creating the technical specification.",
-  "generating-nda": "Creating the sample mutual NDA.",
+  "generating-nda": "Creating the sample NDA.",
   saving: "Saving both documents as exact revisions.",
   complete: "Both documents are ready for review.",
   failed: "Generation paused.",

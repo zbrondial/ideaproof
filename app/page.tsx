@@ -8,7 +8,7 @@ export default function HomePage() {
     ],
     [
       "Generate your documents",
-      "Receive a technical specification and mutual NDA.",
+      "Receive a technical specification and sample NDA.",
     ],
     [
       "Review and revise",
@@ -34,7 +34,7 @@ export default function HomePage() {
             Own the moment it happened.
           </h1>
           <p className="lede">
-            Turn a software idea into a technical specification and mutual NDA,
+            Turn a software idea into a technical specification and sample NDA,
             review the generated documents, and create a timestamped proof of
             the exact version you approved.
           </p>

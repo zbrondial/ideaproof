@@ -13,7 +13,7 @@ export const technicalSpecificationSchema = z
 
 export const mutualNdaSchema = z
   .object({
-    title: z.literal("Mutual Non-Disclosure Agreement"),
+    title: z.literal("Sample Non-Disclosure Agreement"),
     notice: z.literal(
       "Not legal advice. Review this template with a qualified attorney before use.",
     ),

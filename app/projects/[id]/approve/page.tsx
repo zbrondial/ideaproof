@@ -75,7 +75,7 @@ export default async function ApprovePage({
           <small>{specification.wordCount} words</small>
         </article>
         <article>
-          <span>Sample mutual NDA</span>
+          <span>Sample NDA</span>
           <strong>Version {nda.version}</strong>
           <small>{nda.wordCount} words</small>
         </article>

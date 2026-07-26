@@ -22,8 +22,9 @@ it("renders identical bytes for identical approved input", async () => {
 
 it("renders labeled NDA blanks as ordinary visible text", async () => {
   const pdf = await renderPdf({
-    title: "Mutual NDA",
-    markdown: "# Mutual NDA\n\nParty A: ______________________",
+    title: "Sample Non-Disclosure Agreement",
+    markdown:
+      "# Sample Non-Disclosure Agreement\n\nParty A: ______________________",
     approvedAt: "2026-07-25T00:00:00.000Z",
     documentType: "nda",
   });

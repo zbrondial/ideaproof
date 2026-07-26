@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const documentLabels = {
   specification: "Technical specification",
-  nda: "Mutual NDA",
+  nda: "Sample NDA",
 };
 
 export default async function ProofPage({
