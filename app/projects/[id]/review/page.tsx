@@ -39,14 +39,17 @@ export default async function ReviewPage({
 
   return (
     <div className="content-shell">
-      <div className="page-heading">
-        <p className="section-label">Review exact revisions</p>
-        <h1>{project.title}</h1>
-        <p>
-          Read both documents carefully. Create revisions until they represent
-          the idea you want to approve.
-        </p>
-      </div>
+      <header className="page-heading review-heading">
+        <div>
+          <h1>Review your documents</h1>
+          <p className="project-context">{project.title}</p>
+          <p className="model-metadata">
+            {project.provider === "openai" ? "OpenAI" : "Claude"} ·{" "}
+            {project.model}
+          </p>
+        </div>
+        <a href={`/projects/${project.id}/history`}>Revision history</a>
+      </header>
       <ReviewWorkspace
         projectId={id}
         revisions={project.revisions}

@@ -75,12 +75,14 @@ export function ReviewWorkspace({
               aria-selected={documentType === type}
               onClick={() => setDocumentType(type)}
             >
-              {type === "specification" ? "Specification" : "Mutual NDA"}
+              {type === "specification"
+                ? "Technical specification"
+                : "Mutual NDA"}
             </button>
           ))}
         </div>
         <label className="version-select">
-          <span>Revision</span>
+          <span>Version</span>
           <select
             value={revision.id}
             onChange={(event) =>
@@ -101,7 +103,7 @@ export function ReviewWorkspace({
       <DocumentPreview markdown={revision.content} />
       <aside className="revision-panel">
         <form onSubmit={revise}>
-          <label htmlFor="feedback">What should change?</label>
+          <label htmlFor="feedback">Request changes</label>
           <textarea
             id="feedback"
             value={feedback}
@@ -118,16 +120,27 @@ export function ReviewWorkspace({
             </p>
           ) : null}
           <button className="button" type="submit" disabled={submitting}>
-            {submitting ? "Creating revision…" : "Create revision"}
+            {submitting ? "Creating revision…" : "Generate updated version"}
           </button>
         </form>
+        <dl className="revision-summary">
+          <div>
+            <dt>Current version</dt>
+            <dd>Version {revision.version}</dd>
+          </div>
+          <div>
+            <dt>Length</dt>
+            <dd>{revision.wordCount} words</dd>
+          </div>
+          <div>
+            <dt>Model</dt>
+            <dd>
+              {revision.provider === "openai" ? "OpenAI" : "Claude"} ·{" "}
+              {revision.model}
+            </dd>
+          </div>
+        </dl>
         <div className="review-actions">
-          <Link
-            className="button button-secondary"
-            href={`/projects/${projectId}/history`}
-          >
-            Revision history
-          </Link>
           <Link
             className="button"
             href={`/projects/${projectId}/approve?specificationRevisionId=${encodeURIComponent(selected.specification)}&ndaRevisionId=${encodeURIComponent(selected.nda)}`}

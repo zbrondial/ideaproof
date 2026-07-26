@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { ProjectList } from "@/components/project-list";
 import { getProjectStore, type ProjectStatus } from "@/server/db/projects";
 
@@ -31,10 +33,12 @@ export default async function ProjectsPage({
     <div className="content-shell">
       <div className="page-heading heading-row">
         <div>
-          <p className="section-label">Proof logs</p>
-          <h1>Your idea projects</h1>
-          <p>Review drafts, pending timestamps, and confirmed proof packages.</p>
+          <h1>Proof Logs</h1>
+          <p>Your ideas, generated documents, and proof status.</p>
         </div>
+        <Link className="button" href="/projects/new">
+          Protect a new idea
+        </Link>
       </div>
       <form className="filter-bar" action="/projects">
         <label>

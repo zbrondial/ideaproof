@@ -20,9 +20,15 @@ export default async function HistoryPage({
     <div className="content-shell">
       <div className="page-heading heading-row">
         <div>
-          <p className="section-label">Revision history</p>
-          <h1>{project.title}</h1>
-          <p>Every accepted generation remains available for inspection.</p>
+          <h1>Revision history</h1>
+          <p>
+            {project.title}. Every accepted generation remains available for
+            inspection.
+          </p>
+          <p className="model-metadata">
+            {project.provider === "openai" ? "OpenAI" : "Claude"} ·{" "}
+            {project.model}
+          </p>
         </div>
         <Link className="button button-secondary" href={`/projects/${id}/review`}>
           Back to review
@@ -44,8 +50,11 @@ export default async function HistoryPage({
                 <dd>{new Date(revision.createdAt).toLocaleString()}</dd>
               </div>
               <div>
-                <dt>Model</dt>
-                <dd>{revision.model}</dd>
+                <dt>Provider and model</dt>
+                <dd>
+                  {revision.provider === "openai" ? "OpenAI" : "Claude"} ·{" "}
+                  {revision.model}
+                </dd>
               </div>
               <div>
                 <dt>Prompt</dt>

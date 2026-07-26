@@ -1046,7 +1046,23 @@ textarea:focus {
 
 .project-row time {
   color: var(--muted);
+  font-family: var(--font-plex-mono), monospace;
   font-size: 0.82rem;
+}
+
+.project-row-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 18px;
+}
+
+.row-open {
+  padding: 6px 14px;
+  border: 1px solid oklch(0.28 0.01 240);
+  border-radius: 5px;
+  color: oklch(0.68 0.02 245);
+  font-size: 0.8125rem;
 }
 
 .status-badge {
@@ -1055,8 +1071,9 @@ textarea:focus {
   align-items: center;
   gap: 8px;
   color: var(--muted);
+  font-family: var(--font-plex-mono), monospace;
   font-size: 0.82rem;
-  font-weight: 650;
+  font-weight: 500;
 }
 
 .status-badge span {
@@ -1116,7 +1133,17 @@ textarea:focus {
   letter-spacing: -0.035em;
 }
 
-.generation-panel > p:not(.section-label) {
+.model-metadata {
+  color: var(--accent-light);
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 0.78rem;
+}
+
+.generation-panel .model-metadata {
+  margin: 12px auto 0;
+}
+
+.generation-panel > p:not(.model-metadata) {
   max-width: 54ch;
   margin: 16px auto 36px;
   color: var(--muted);
@@ -1158,6 +1185,7 @@ textarea:focus {
 }
 
 .progress-list li {
+  position: relative;
   padding: 13px 4px;
   color: var(--muted);
 }
@@ -1168,7 +1196,43 @@ textarea:focus {
 
 .progress-list li[data-active="true"] {
   color: var(--text);
-  font-weight: 680;
+  font-weight: 600;
+}
+
+.progress-list li[data-active="true"]::after {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.review-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.review-heading .project-context {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+.review-heading .model-metadata,
+.heading-row .model-metadata {
+  margin-top: 7px;
+}
+
+.review-heading > a {
+  padding-bottom: 3px;
+  color: var(--accent-light);
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .review-workspace {
@@ -1209,7 +1273,7 @@ textarea:focus {
 .document-tabs button[aria-selected="true"] {
   background: var(--surface-raised);
   color: var(--text);
-  font-weight: 680;
+  font-weight: 600;
 }
 
 .version-select {
@@ -1276,7 +1340,39 @@ textarea:focus {
 }
 
 .revision-panel label {
-  font-weight: 680;
+  font-weight: 600;
+}
+
+.revision-summary {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.revision-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.revision-summary dt,
+.revision-summary dd {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.revision-summary dt {
+  color: var(--muted);
+}
+
+.revision-summary dd {
+  max-width: 190px;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .review-actions {
@@ -1300,7 +1396,7 @@ textarea:focus {
   justify-content: space-between;
   gap: 20px;
   cursor: pointer;
-  font-weight: 680;
+  font-weight: 600;
 }
 
 .history-list summary span:last-child {
@@ -1329,6 +1425,7 @@ textarea:focus {
 
 .revision-meta dd {
   margin: 3px 0 0;
+  font-family: var(--font-plex-mono), monospace;
   font-size: 0.84rem;
 }
 
@@ -1499,6 +1596,7 @@ textarea:focus {
   }
 
   .review-toolbar,
+  .review-heading,
   .heading-row {
     align-items: stretch;
     flex-direction: column;

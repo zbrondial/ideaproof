@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import type { AiProvider } from "@/server/config";
+
 type DocumentType = "specification" | "nda";
 type GenerationStep =
   | "preparing"
@@ -12,16 +14,24 @@ type GenerationStep =
   | "complete"
   | "failed";
 
-const labels: Record<GenerationStep, string> = {
-  preparing: "Preparing your project",
-  "generating-specification": "Writing the technical specification",
-  "generating-nda": "Writing the mutual NDA",
-  saving: "Saving both exact revisions",
-  complete: "Documents ready for review",
-  failed: "Generation paused",
+const messages: Record<GenerationStep, string> = {
+  preparing: "Organizing the details you supplied.",
+  "generating-specification": "Creating the technical specification.",
+  "generating-nda": "Creating the sample mutual NDA.",
+  saving: "Saving both documents as exact revisions.",
+  complete: "Both documents are ready for review.",
+  failed: "Generation paused.",
 };
 
-export function GenerationProgress({ projectId }: { projectId: string }) {
+export function GenerationProgress({
+  projectId,
+  provider,
+  model,
+}: {
+  projectId: string;
+  provider: AiProvider;
+  model: string;
+}) {
   const router = useRouter();
   const started = useRef(false);
   const [step, setStep] = useState<GenerationStep>("preparing");
@@ -71,20 +81,25 @@ export function GenerationProgress({ projectId }: { projectId: string }) {
       <div className="generation-orbit" aria-hidden="true">
         <span />
       </div>
-      <p className="section-label">Creating your documents</p>
-      <h1>{labels[step]}</h1>
+      <h1>Preparing your documents</h1>
+      <p className="model-metadata">
+        {provider === "openai" ? "OpenAI" : "Claude"} · {model}
+      </p>
       <p>
-        {step === "failed"
-          ? message
-          : "Each completed document is saved as its own revision. You will review both before approval."}
+        {step === "failed" ? message : messages[step]}
       </p>
       <ol className="progress-list">
-        <li data-active={step === "generating-specification"}>
-          Technical specification
+        <li data-active={step === "preparing"}>
+          Organizing product requirements
         </li>
-        <li data-active={step === "generating-nda"}>Mutual NDA</li>
+        <li data-active={step === "generating-specification"}>
+          Generating technical specification
+        </li>
+        <li data-active={step === "generating-nda"}>
+          Generating sample NDA
+        </li>
         <li data-active={step === "saving" || step === "complete"}>
-          Save revisions
+          Saving document revisions
         </li>
       </ol>
       {failedDocument ? (

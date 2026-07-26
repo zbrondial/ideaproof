@@ -8,8 +8,11 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
   if (projects.length === 0) {
     return (
       <div className="empty-state">
-        <h2>No projects found</h2>
-        <p>Create an idea project or adjust the current filters.</p>
+        <h2>No proof logs yet</h2>
+        <p>
+          Protect an idea to create your first document and proof record, or
+          adjust the current filters.
+        </p>
         <Link className="button button-secondary" href="/projects/new">
           Protect an idea
         </Link>
@@ -31,7 +34,12 @@ export function ProjectList({ projects }: { projects: ProjectSummary[] }) {
               }).format(new Date(project.createdAt))}
             </time>
           </div>
-          <StatusBadge status={project.status} />
+          <div className="project-row-actions">
+            <StatusBadge status={project.status} />
+            <span className="row-open" aria-hidden="true">
+              Open →
+            </span>
+          </div>
         </Link>
       ))}
     </div>
