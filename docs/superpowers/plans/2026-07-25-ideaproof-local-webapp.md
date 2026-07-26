@@ -6,7 +6,7 @@
 
 **Architecture:** One Next.js App Router process serves the browser UI and server routes on `127.0.0.1:3000`. Server-only modules use Node's built-in SQLite API, the OpenAI Responses API, deterministic PDF rendering, and a project-local Python `ots` executable; Docker Compose is optional and never required by the application or test suite.
 
-**Tech Stack:** Node.js 24 LTS, Next.js 16.2.11, React 19.2.8, strict TypeScript, `node:sqlite`, OpenAI SDK 6.49.0, Zod 4.4.3, `pdf-lib` 1.17.1, `@pdf-lib/fontkit` 1.1.1, `fflate` 0.8.3, `react-markdown` 10.1.0, Vitest 4.1.10, Playwright 1.62.0, Python 3.10+, and `opentimestamps-client==0.7.2`.
+**Tech Stack:** Node.js 24.14+, Next.js 16.2.11, React 19.2.8, strict TypeScript 6.0.3, `node:sqlite`, OpenAI SDK 6.49.0, Zod 4.4.3, `pdf-lib` 1.17.1, `@pdf-lib/fontkit` 1.1.1, `fflate` 0.8.3, `react-markdown` 10.1.0, Vitest 4.1.10, Playwright 1.62.0, Python 3.9+, and `opentimestamps-client==0.7.2`.
 
 ## Global Constraints
 
@@ -207,7 +207,7 @@ Create `package.json` with exact runtime scripts and versions:
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "engines": { "node": ">=24.15.0", "npm": ">=10" },
+  "engines": { "node": ">=24.14.0", "npm": ">=10" },
   "scripts": {
     "setup": "node scripts/setup-ots.mjs",
     "dev": "next dev --hostname 127.0.0.1",
@@ -238,7 +238,7 @@ Create `package.json` with exact runtime scripts and versions:
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.11",
-    "typescript": "7.0.2",
+    "typescript": "6.0.3",
     "vitest": "4.1.10"
   }
 }
@@ -311,7 +311,7 @@ const selected = candidates.find(([cmd, args]) =>
   spawnSync(cmd, [...args, "--version"], { stdio: "ignore" }).status === 0
 );
 if (!selected) {
-  process.stderr.write("Python 3.10+ is required. Install Python, then rerun npm run setup.\n");
+  process.stderr.write("Python 3.9+ is required. Install Python, then rerun npm run setup.\n");
   process.exit(1);
 }
 const [python, prefix] = selected;
@@ -1711,7 +1711,7 @@ Acceptance checklist:
 
 - product purpose and limits;
 - the two generated screenshots;
-- Node 24 LTS, Python 3.10+, and npm 10+ requirements;
+- Node 24.14+, Python 3.9+, and npm 10+ requirements;
 - GitHub's Code → HTTPS clone flow, `.env`, `npm install`, `npm run setup`,
   `npm run build`, and `npm start`; when an `origin` remote exists, include
   that exact URL rather than an invented owner or repository name;

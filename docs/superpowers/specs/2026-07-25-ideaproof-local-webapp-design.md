@@ -76,7 +76,7 @@ this command block and tells the user to open `http://localhost:3000`.
 Runtime requirements:
 
 - Node.js 24 LTS;
-- Python 3.10 or newer;
+- Python 3.9 or newer;
 - npm 10 or newer;
 - macOS, Linux, or Windows with PowerShell;
 - network access for OpenAI generation and OpenTimestamps calendar requests.

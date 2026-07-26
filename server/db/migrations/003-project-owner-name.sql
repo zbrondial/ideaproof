@@ -1,0 +1,2 @@
+ALTER TABLE projects
+ADD COLUMN owner_name TEXT NOT NULL DEFAULT '';
