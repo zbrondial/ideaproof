@@ -11,6 +11,9 @@ for (const [name, path] of [
   ["home", "/"],
   ["new-project", "/projects/new"],
   ["proof-logs", "/projects"],
+  ["verify", "/verify"],
+  ["setup", "/setup"],
+  ["terms", "/terms"],
 ]) {
   const response = await page.goto(`http://127.0.0.1:3000${path}`, {
     waitUntil: "networkidle",
@@ -39,7 +42,14 @@ await page.screenshot({
   path: "/tmp/ideaproof-home-mobile.png",
   fullPage: true,
 });
+await page.goto("http://127.0.0.1:3000/verify", { waitUntil: "networkidle" });
+await page.screenshot({
+  path: "/tmp/ideaproof-verify-mobile.png",
+  fullPage: true,
+});
 
 await browser.close();
 if (errors.length) throw new Error(`Browser console errors: ${errors.join("; ")}`);
-console.log("UI verified: home, intake, proof logs, and mobile navigation");
+console.log(
+  "UI verified: home, intake, proof logs, verify, setup, terms, and mobile navigation",
+);

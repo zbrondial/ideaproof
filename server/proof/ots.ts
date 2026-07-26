@@ -52,8 +52,8 @@ const runProcess: ProcessRunner = (executable, args, options) =>
 
 export function resolveOtsExecutable(root = process.cwd()): string {
   return process.platform === "win32"
-    ? join(root, ".venv", "Scripts", "ots.exe")
-    : join(root, ".venv", "bin", "ots");
+    ? join(/* turbopackIgnore: true */ root, ".venv", "Scripts", "ots.exe")
+    : join(/* turbopackIgnore: true */ root, ".venv", "bin", "ots");
 }
 
 function executableFor(runner: ProcessRunner) {

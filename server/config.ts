@@ -15,7 +15,7 @@ export function loadStorageConfig(): Pick<AppConfig, "dataDir" | "host" | "port"
   return {
     dataDir: configuredDataDir
       ? path.resolve(/* turbopackIgnore: true */ configuredDataDir)
-      : path.join(process.cwd(), "data"),
+      : path.join(/* turbopackIgnore: true */ process.cwd(), "data"),
     host: "127.0.0.1",
     port: 3000,
   };
