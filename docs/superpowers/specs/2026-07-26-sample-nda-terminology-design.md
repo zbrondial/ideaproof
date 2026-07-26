@@ -72,14 +72,15 @@ projects. This avoids rewriting or making claims about historical documents.
 
 ## Approval
 
-Before the first approval, require this unchecked confirmation:
+Before the first approval of a new project with an owner name, require this
+unchecked confirmation:
 
 > I confirm that I prepared and claim ownership of this documented idea.
 
 Keep `Approve and create proof` disabled until the user checks it. The approval
-API must also require the confirmation for a new approval so the browser cannot
-bypass it. Timestamp retries for an already approved project do not require the
-checkbox again.
+API must also require the confirmation so the browser cannot bypass it.
+Legacy projects with an empty owner name and timestamp retries for an already
+approved project do not require the checkbox.
 
 ## OpenTimestamps and Terms explanation
 
