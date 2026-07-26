@@ -8,19 +8,25 @@ test("create, generate, revise, approve, download, and verify", async ({
 }, testInfo) => {
   await page.goto("/projects/new");
   await page
-    .getByLabel("Your idea")
+    .getByLabel("Raw software idea")
     .fill(
       "A local web app that creates concise idea documents and timestamps approved PDFs.",
     );
   await page
     .getByLabel("NDA purpose")
     .fill("Discuss a possible product collaboration.");
-  await page.getByRole("button", { name: "Create documents" }).click();
+  await page
+    .getByRole("button", {
+      name: "Generate technical specification and sample NDA",
+    })
+    .click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/review$/);
 
   await page.getByRole("tab", { name: "Mutual NDA" }).click();
-  await page.getByLabel("What should change?").fill("Use shorter sentences.");
-  await page.getByRole("button", { name: "Create revision" }).click();
+  await page.getByLabel("Request changes").fill("Use shorter sentences.");
+  await page
+    .getByRole("button", { name: "Generate updated version" })
+    .click();
   await expect(page.locator("select option:checked")).toHaveText(/Version 2/);
   const versionOneId = await page
     .locator("select option")
@@ -63,6 +69,15 @@ test("create, generate, revise, approve, download, and verify", async ({
     "e2e-fixture-key",
   );
   const manifest = JSON.parse(strFromU8(archive["manifest.json"]));
+  expect(manifest.schemaVersion).toBe(2);
+  expect(manifest.documents).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        provider: "openai",
+        model: "gpt-5.6",
+      }),
+    ]),
+  );
   expect(
     manifest.documents.find(
       (document: { type: string }) => document.type === "nda",
@@ -73,7 +88,7 @@ test("create, generate, revise, approve, download, and verify", async ({
   );
 
   await page.goto("/verify");
-  await page.getByLabel("PDF document").setInputFiles({
+  await page.getByLabel("PDF file").setInputFiles({
     name: "technical-specification.pdf",
     mimeType: "application/pdf",
     buffer: Buffer.from(archive["technical-specification.pdf"]),
@@ -83,7 +98,7 @@ test("create, generate, revise, approve, download, and verify", async ({
     mimeType: "application/octet-stream",
     buffer: Buffer.from(archive["technical-specification.pdf.ots"]),
   });
-  await page.getByRole("button", { name: "Verify exact files" }).click();
+  await page.getByRole("button", { name: "Verify proof" }).click();
   await expect(
     page.getByRole("heading", { name: "Proof confirmed" }),
   ).toBeVisible();

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -56,7 +57,9 @@ export function ProofStatus({
       setMessage(body.message ?? "Timestamping could not be retried.");
       return;
     }
-    setMessage("Timestamp commitments were resubmitted.");
+    setMessage(
+      "The PDF fingerprints were resubmitted to OpenTimestamps.",
+    );
     router.refresh();
   }
 
@@ -89,6 +92,9 @@ export function ProofStatus({
           Download proof package
         </a>
       ) : null}
+      <Link className="button button-secondary" href="/verify">
+        Verify proof
+      </Link>
       {message ? (
         <p className="action-message" role="status">
           {message}

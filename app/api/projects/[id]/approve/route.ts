@@ -19,7 +19,7 @@ import {
 import {
   buildProofPackage,
   sha256,
-  type ManifestV1,
+  type ManifestV2,
 } from "@/server/documents/package";
 import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
@@ -74,8 +74,8 @@ async function packageApprovedProject(
       readFile(dataPath(dataDir, ndaArtifact.pdfPath)),
       readFile(dataPath(dataDir, ndaArtifact.otsPath)),
     ]);
-  const manifest: ManifestV1 = {
-    schemaVersion: 1,
+  const manifest: ManifestV2 = {
+    schemaVersion: 2,
     projectId: project.id,
     approvalId: project.approval.id,
     approvedAt: project.approval.approvedAt,
@@ -89,6 +89,7 @@ async function packageApprovedProject(
         sha256: specificationArtifact.sha256,
         wordCount: specification.wordCount,
         promptTemplateVersion: specification.promptTemplateVersion,
+        provider: specification.provider,
         model: specification.model,
       },
       {
@@ -100,6 +101,7 @@ async function packageApprovedProject(
         sha256: ndaArtifact.sha256,
         wordCount: nda.wordCount,
         promptTemplateVersion: nda.promptTemplateVersion,
+        provider: nda.provider,
         model: nda.model,
       },
     ],
@@ -261,7 +263,7 @@ export async function handleApprove({
         409,
       );
     }
-    if (specification.wordCount > 1_200 || nda.wordCount > 700) {
+    if (specification.wordCount > 1_000 || nda.wordCount > 700) {
       throw new AppError(
         "DOCUMENT_TOO_LONG",
         "A selected document exceeds its word limit.",

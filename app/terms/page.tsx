@@ -12,13 +12,14 @@ export default function TermsPage() {
       <section>
         <h2>AI-generated documents need review</h2>
         <p>
-          OpenAI generates the technical specification and NDA template from
-          the information you submit. Generated content can be incomplete or
-          wrong. Review every line before approval.
+          Your selected AI provider generates the technical specification and
+          sample NDA from the information you submit. Generated content can
+          contain errors, omissions, or unsuitable suggestions. Review every
+          line before approval.
         </p>
       </section>
       <section>
-        <h2>The NDA is a template, not legal advice</h2>
+        <h2>The sample NDA is not legal advice</h2>
         <p>
           It is intentionally simple and may not fit your circumstances.
           Consult a qualified lawyer before relying on it.
@@ -27,25 +28,26 @@ export default function TermsPage() {
       <section>
         <h2>Content and local storage</h2>
         <p>
-          Document generation sends the required idea and NDA content to
-          OpenAI using your API key. Projects are stored on this machine
-          without application-level encryption.
+          Document generation sends the required idea and NDA purpose to your
+          selected AI provider using your API key. Projects are stored on this
+          machine without application-level encryption.
         </p>
       </section>
       <section>
         <h2>What timestamps prove</h2>
         <p>
-          A confirmed proof shows that exact file bytes existed by a certain
-          time. It does not establish ownership, authorship, patent rights, or
-          legal validity. Changing a PDF invalidates its existing proof.
+          A confirmed OpenTimestamps proof shows that the digital fingerprint
+          of an exact PDF existed by a certain time. Timestamps do not prove
+          ownership or legal validity. Changing a PDF means it will no longer
+          match its existing proof.
         </p>
       </section>
       <section>
-        <h2>Public calendars and confirmation time</h2>
+        <h2>OpenTimestamps confirmation can take time</h2>
         <p>
-          Timestamp calendars receive cryptographic commitments, not your
-          document, but timing and network metadata may still be observable.
-          Bitcoin confirmation may take hours.
+          OpenTimestamps receives the PDF&apos;s digital fingerprint, not the
+          PDF or its contents. A proof may remain pending for several hours
+          before it can be confirmed.
         </p>
       </section>
     </div>

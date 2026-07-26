@@ -5,10 +5,12 @@ export default function VerifyPage() {
     <div className="content-shell narrow-shell">
       <div className="page-heading">
         <p className="section-label">Independent verification</p>
-        <h1>Check a PDF against its timestamp proof.</h1>
+        <h1>Verify proof</h1>
         <p>
-          Files are copied to a temporary local folder only for this check,
-          then deleted. Verification does not send the PDF to OpenAI.
+          Choose an approved PDF and its matching OpenTimestamps proof.
+          IdeaProof checks them temporarily on this machine, then deletes the
+          temporary copies. Verification does not send the PDF to an AI
+          provider or OpenTimestamps.
         </p>
       </div>
       <VerifyForm />

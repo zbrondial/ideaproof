@@ -62,10 +62,10 @@ export default async function ApprovePage({
     <div className="content-shell narrow-shell">
       <div className="page-heading">
         <p className="section-label">Final approval</p>
-        <h1>Lock the exact documents you reviewed.</h1>
+        <h1>Approve these documents?</h1>
         <p>
-          IdeaProof will render these revisions as PDFs, hash their exact
-          bytes, and submit timestamp commitments to public calendars.
+          Review the selected versions below. Approval makes these PDFs
+          permanent and creates a matching OpenTimestamps proof for each one.
         </p>
       </div>
       <div className="approval-summary">
@@ -75,16 +75,17 @@ export default async function ApprovePage({
           <small>{specification.wordCount} words</small>
         </article>
         <article>
-          <span>Mutual NDA</span>
+          <span>Sample mutual NDA</span>
           <strong>Version {nda.version}</strong>
           <small>{nda.wordCount} words</small>
         </article>
       </div>
       <div className="notice-card">
-        <h2>What the timestamp proves</h2>
+        <h2>Before you approve</h2>
         <p>
-          It can later show that these exact PDF bytes existed by a confirmed
-          time. It does not prove ownership, authorship, or legal validity.
+          The approved versions cannot be edited. OpenTimestamps confirmation
+          can take time, but you can download the PDFs and their proofs as soon
+          as the proof package is ready.
         </p>
       </div>
       <ApprovalButton

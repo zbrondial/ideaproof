@@ -51,7 +51,7 @@ export function VerifyForm() {
     <form className="verify-form" onSubmit={submit}>
       <div className="upload-grid">
         <label className="upload-field">
-          <span>PDF document</span>
+          <span>PDF file</span>
           <input
             type="file"
             accept="application/pdf,.pdf"
@@ -84,7 +84,7 @@ export function VerifyForm() {
         type="submit"
         disabled={!document || !proof || submitting}
       >
-        {submitting ? "Verifying…" : "Verify exact files"}
+        {submitting ? "Verifying…" : "Verify proof"}
       </button>
       {error ? (
         <p className="form-error" role="alert">
@@ -117,12 +117,6 @@ export function VerifyForm() {
                   <code>{result.sha256}</code>
                 </dd>
               </div>
-              {result.bitcoinBlockHeight ? (
-                <div>
-                  <dt>Bitcoin block</dt>
-                  <dd>{result.bitcoinBlockHeight}</dd>
-                </div>
-              ) : null}
               {result.confirmedAt ? (
                 <div>
                   <dt>Confirmed by</dt>

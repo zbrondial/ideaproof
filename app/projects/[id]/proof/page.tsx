@@ -46,11 +46,13 @@ export default async function ProofPage({
     <div className="content-shell">
       <div className="proof-heading">
         <div className="page-heading">
-          <p className="section-label">Immutable proof record</p>
+          <p className="section-label">Proof record</p>
           <h1>{project.title}</h1>
           <p>
-            Approved {new Date(project.approval.approvedAt).toLocaleString()}.
-            Confirmation can take hours and must be checked explicitly.
+            IdeaProof created a digital fingerprint of each approved PDF on{" "}
+            {new Date(project.approval.approvedAt).toLocaleString()}.
+            OpenTimestamps confirmation may take time, so check again later if
+            it is still pending.
           </p>
         </div>
         <StatusBadge status={project.status} />
@@ -69,10 +71,7 @@ export default async function ProofPage({
                     : "Needs attention"}
               </strong>
             </div>
-            <code>{artifact.sha256}</code>
-            {artifact.bitcoinBlockHeight ? (
-              <small>Bitcoin block {artifact.bitcoinBlockHeight}</small>
-            ) : null}
+            <code title="Digital fingerprint">{artifact.sha256}</code>
           </article>
         ))}
       </section>
@@ -90,7 +89,7 @@ export default async function ProofPage({
             <p className="section-label">Approved contents</p>
             <h2>Exact revisions in this proof</h2>
           </div>
-          <Link href="/verify">Verify another PDF</Link>
+          <Link href="/verify">Verify proof</Link>
         </div>
         {revisions.map((revision) => (
           <article key={revision.id} className="approved-document">

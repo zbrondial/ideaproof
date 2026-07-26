@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -41,14 +42,22 @@ export function ApprovalButton({
           {error}
         </p>
       ) : null}
-      <button
-        className="button"
-        type="button"
-        onClick={approve}
-        disabled={submitting}
-      >
-        {submitting ? "Creating proof…" : "Approve and create proof"}
-      </button>
+      <div className="approval-buttons">
+        <Link
+          className="button button-secondary"
+          href={`/projects/${projectId}/review`}
+        >
+          Keep reviewing
+        </Link>
+        <button
+          className="button"
+          type="button"
+          onClick={approve}
+          disabled={submitting}
+        >
+          {submitting ? "Creating proof…" : "Approve and create proof"}
+        </button>
+      </div>
       <p>
         Approval locks these exact revisions. Later edits require a new
         project and proof.

@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 
-import { unzipSync } from "fflate";
+import { strFromU8, unzipSync } from "fflate";
 import { afterEach, expect, it } from "vitest";
 
 import { handleApprove } from "@/app/api/projects/[id]/approve/route";
@@ -106,6 +106,21 @@ it("approves exact revisions and writes an immutable proof package", async () =>
       "technical-specification.pdf",
       "technical-specification.pdf.ots",
     ]);
+    expect(JSON.parse(strFromU8(zip["manifest.json"]))).toMatchObject({
+      schemaVersion: 2,
+      documents: [
+        {
+          type: "specification",
+          provider: "openai",
+          model: "gpt-5.6",
+        },
+        {
+          type: "nda",
+          provider: "openai",
+          model: "gpt-5.6",
+        },
+      ],
+    });
 
     const duplicate = await handleApprove({
       projectId: project.id,

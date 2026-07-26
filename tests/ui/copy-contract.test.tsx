@@ -2,7 +2,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
 
 import HomePage from "@/app/page";
+import TermsPage from "@/app/terms/page";
+import VerifyPage from "@/app/verify/page";
+import { ApprovalButton } from "@/components/approval-button";
 import { AppNav } from "@/components/app-nav";
+import { ProofStatus } from "@/components/proof-status";
 import { ProjectForm } from "@/components/project-form";
 
 vi.mock("next/navigation", () => ({
@@ -63,4 +67,43 @@ it("shows only configured models and defaults to OpenAI when both are available"
   expect(none).toContain("Set up an AI provider");
   expect(none).toContain('href="/setup"');
   expect(none).toContain("disabled");
+});
+
+it("uses plain approval and proof actions", () => {
+  const approval = renderToStaticMarkup(
+    <ApprovalButton
+      projectId="project-id"
+      specificationRevisionId="spec-id"
+      ndaRevisionId="nda-id"
+    />,
+  );
+  expect(approval).toContain("Approve and create proof");
+  expect(approval).toContain("Keep reviewing");
+
+  const proof = renderToStaticMarkup(
+    <ProofStatus
+      projectId="project-id"
+      initialStatus="pending"
+      specificationRevisionId="spec-id"
+      ndaRevisionId="nda-id"
+    />,
+  );
+  expect(proof).toContain("Check confirmation");
+  expect(proof).toContain("Download proof package");
+  expect(proof).toContain("Verify proof");
+});
+
+it("explains verification and important limits in plain language", () => {
+  const verify = renderToStaticMarkup(<VerifyPage />);
+  expect(verify).toContain("<h1>Verify proof</h1>");
+  expect(verify).toContain("PDF file");
+  expect(verify).toContain("OpenTimestamps proof");
+  expect(verify).toContain(">Verify proof</button>");
+
+  const terms = renderToStaticMarkup(<TermsPage />);
+  expect(terms).toContain("selected AI provider");
+  expect(terms).toContain("sample NDA");
+  expect(terms).toContain("not legal advice");
+  expect(terms).toContain("without application-level encryption");
+  expect(terms).toContain("do not prove ownership or legal validity");
 });

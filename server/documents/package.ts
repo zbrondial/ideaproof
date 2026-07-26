@@ -2,23 +2,37 @@ import { createHash } from "node:crypto";
 
 import { strToU8, zipSync, type Zippable } from "fflate";
 
+import type { AiProvider } from "@/server/config";
+
+type ManifestDocument = {
+  type: "specification" | "nda";
+  revisionId: string;
+  markdownFile: string;
+  pdfFile: string;
+  proofFile: string;
+  sha256: string;
+  wordCount: number;
+  promptTemplateVersion: string;
+  model: string;
+};
+
 export type ManifestV1 = {
   schemaVersion: 1;
   projectId: string;
   approvalId: string;
   approvedAt: string;
-  documents: Array<{
-    type: "specification" | "nda";
-    revisionId: string;
-    markdownFile: string;
-    pdfFile: string;
-    proofFile: string;
-    sha256: string;
-    wordCount: number;
-    promptTemplateVersion: string;
-    model: string;
-  }>;
+  documents: ManifestDocument[];
 };
+
+export type ManifestV2 = {
+  schemaVersion: 2;
+  projectId: string;
+  approvalId: string;
+  approvedAt: string;
+  documents: Array<ManifestDocument & { provider: AiProvider }>;
+};
+
+export type ProofManifest = ManifestV1 | ManifestV2;
 
 const publicFiles = [
   "technical-specification.md",
@@ -35,7 +49,7 @@ export function sha256(bytes: Uint8Array): string {
 
 export function buildProofPackage(
   files: Record<(typeof publicFiles)[number], Uint8Array>,
-  manifest: ManifestV1,
+  manifest: ProofManifest,
 ): Uint8Array {
   const modified = new Date(manifest.approvedAt);
   const entries: Zippable = {};
