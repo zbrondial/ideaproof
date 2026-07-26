@@ -27,6 +27,9 @@ downloads, and `.ots` files out of fixtures and commits.
   Anthropic fixtures.
 - Schema changes must use a new ordered SQL migration. Never edit an applied
   migration in place.
+- Owner-name changes must keep the value local: never add it to generation or
+  revision provider inputs. Preserve the deterministic declaration, the
+  first-approval confirmation, and legacy empty-owner behavior.
 - PDF changes must preserve deterministic bytes, embedded-font licensing,
   multipage behavior, visible NDA blanks, and visual inspection.
 - Proof changes must invoke executables with argument arrays and `shell: false`.
@@ -38,7 +41,8 @@ downloads, and `.ots` files out of fixtures and commits.
 
 ## README screenshots
 
-Screenshots use deterministic fixtures and contain no keys or personal data:
+Screenshots use deterministic fixtures and contain no keys or real personal
+data. Use the fixed placeholder name `Ada Lovelace` for the owner declaration:
 
 ```bash
 npm run test:e2e -- tests/e2e/screenshots.spec.ts

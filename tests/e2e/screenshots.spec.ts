@@ -23,6 +23,7 @@ test("capture public README screens", async ({ page }) => {
   });
 
   await page.goto("/projects/new");
+  await page.getByLabel("Owner’s full name").fill("Ada Lovelace");
   await page
     .getByLabel("Raw software idea")
     .fill(
@@ -70,9 +71,13 @@ test("capture public README screens", async ({ page }) => {
   await expect(
     page.getByRole("tab", { name: "Technical specification" }),
   ).toBeVisible();
-  await expect(page.getByRole("tab", { name: "Mutual NDA" })).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Sample NDA" })).toBeVisible();
   await expect(page.getByLabel("Version")).toBeVisible();
   await expect(page.getByLabel("Request changes")).toBeVisible();
+  await expect(
+    page.getByText("Prepared and claimed by:"),
+  ).toBeVisible();
+  await expect(page.getByText("Ada Lovelace")).toBeVisible();
   await expect(page.getByText(/demo/i)).toHaveCount(0);
   await page.screenshot({
     path: "docs/images/ideaproof-review.png",
@@ -106,6 +111,11 @@ test("capture public README screens", async ({ page }) => {
     path: "/tmp/ideaproof-approve.png",
     fullPage: true,
   });
+  await page
+    .getByRole("checkbox", {
+      name: "I confirm that I prepared and claim ownership of this documented idea.",
+    })
+    .check();
   await page
     .getByRole("button", { name: "Approve and create proof" })
     .click();

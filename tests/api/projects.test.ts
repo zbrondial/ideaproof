@@ -63,6 +63,11 @@ it.each([
   ["too long", "A".repeat(121)],
   ["line break", "Ada\nLovelace"],
   ["Markdown controls", "**Ada**"],
+  ["reserved attribution marker", "Prepared and claimed by Ada"],
+  [
+    "reserved declaration",
+    "The named person declares that they prepared and claim ownership of this documented idea",
+  ],
 ])("rejects an %s owner name", async (_case, ownerName) => {
   const response = await POST(
     jsonRequest({

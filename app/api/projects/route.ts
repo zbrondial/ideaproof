@@ -9,7 +9,13 @@ const ownerNameSchema = z
   .trim()
   .min(1)
   .max(120)
-  .regex(/^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N} .,'’\u002D]*$/u);
+  .regex(/^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N} .,'’\u002D]*$/u)
+  .refine(
+    (name) =>
+      !/prepared and claimed by|the named person declares that they prepared and claim ownership of this documented idea/iu.test(
+        name,
+      ),
+  );
 
 const projectInputSchema = z
   .object({

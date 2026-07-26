@@ -22,6 +22,7 @@ for (const provider of [
   }, testInfo) => {
   await page.goto("/projects/new");
   await page.getByLabel(provider.label).check();
+  await page.getByLabel("Owner’s full name").fill("Ada Lovelace");
   await page
     .getByLabel("Raw software idea")
     .fill(
@@ -37,7 +38,7 @@ for (const provider of [
     .click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/review$/);
 
-  await page.getByRole("tab", { name: "Mutual NDA" }).click();
+  await page.getByRole("tab", { name: "Sample NDA" }).click();
   await page.getByLabel("Request changes").fill("Use shorter sentences.");
   await page
     .getByRole("button", { name: "Generate updated version" })
@@ -53,8 +54,16 @@ for (const provider of [
 
   await page.getByRole("link", { name: "Approve selected revisions" }).click();
   await expect(
-    page.getByText("Mutual NDA").locator("..").getByText("Version 1"),
+    page.getByText("Sample NDA").locator("..").getByText("Version 1"),
   ).toBeVisible();
+  await expect(
+    page.getByText("Prepared and claimed by:").locator(".."),
+  ).toContainText("Ada Lovelace");
+  const ownershipConfirmation = page.getByRole("checkbox", {
+    name: "I confirm that I prepared and claim ownership of this documented idea.",
+  });
+  await expect(ownershipConfirmation).not.toBeChecked();
+  await ownershipConfirmation.check();
   await page
     .getByRole("button", { name: "Approve and create proof" })
     .click();
@@ -73,9 +82,9 @@ for (const provider of [
   const archive = unzipSync(new Uint8Array(await readFile(downloadPath)));
   expect(Object.keys(archive).sort()).toEqual([
     "manifest.json",
-    "mutual-nda.md",
-    "mutual-nda.pdf",
-    "mutual-nda.pdf.ots",
+    "sample-nda.md",
+    "sample-nda.pdf",
+    "sample-nda.pdf.ots",
     "technical-specification.md",
     "technical-specification.pdf",
     "technical-specification.pdf.ots",
@@ -85,6 +94,15 @@ for (const provider of [
   );
   const manifest = JSON.parse(strFromU8(archive["manifest.json"]));
   expect(manifest.schemaVersion).toBe(2);
+  expect(
+    manifest.documents.find(
+      (document: { type: string }) => document.type === "nda",
+    ),
+  ).toMatchObject({
+    markdownFile: "sample-nda.md",
+    pdfFile: "sample-nda.pdf",
+    proofFile: "sample-nda.pdf.ots",
+  });
   expect(manifest.documents).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -105,9 +123,18 @@ for (const provider of [
       (document: { type: string }) => document.type === "nda",
     ).revisionId,
   ).toBe(versionOneId);
-  expect(strFromU8(archive["mutual-nda.md"])).not.toContain(
+  expect(strFromU8(archive["sample-nda.md"])).not.toContain(
     "Revision two uses shorter sentences.",
   );
+  const approvedSpecification = strFromU8(
+    archive["technical-specification.md"],
+  );
+  expect(approvedSpecification).toContain(
+    "**Prepared and claimed by:** Ada Lovelace",
+  );
+  expect(
+    approvedSpecification.match(/Prepared and claimed by/g),
+  ).toHaveLength(1);
 
   await page.goto("/verify");
   await page.getByLabel("PDF file").setInputFiles({

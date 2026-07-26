@@ -17,13 +17,26 @@ SQLite data remain on your machine.
 
 ![IdeaProof document review screen](docs/images/ideaproof-review.png)
 
-## Important limits
+## Owner declaration and important limits
 
-IdeaProof does not prove ownership, authorship, patent rights, or legal
-validity. A confirmed timestamp shows only that the digital fingerprint of an
-exact PDF existed by a certain time. The sample NDA is not legal advice, and
-AI-generated content can contain errors. Review both documents before approval
-and consult a qualified lawyer when appropriate.
+Each new project requires the idea owner’s full name. IdeaProof stores that
+name locally, does not send it to the selected AI provider, and appends this
+declaration to the technical specification:
+
+> **Prepared and claimed by:** Owner’s full name
+>
+> The named person declares that they prepared and claim ownership of this
+> documented idea.
+
+The named person must affirm that declaration before first approval. It becomes
+part of the exact approved PDF and therefore part of that PDF’s digital
+fingerprint. A confirmed timestamp shows that the exact approved PDF existed by
+a certain time; it does not independently verify identity, resolve competing
+ownership claims, establish patent rights, or determine legal validity.
+
+The sample NDA is not legal advice, and AI-generated content can contain
+errors. Review both documents before approval and consult a qualified lawyer
+when appropriate.
 
 Document generation sends the required idea and NDA purpose to the AI provider
 you select using your API key. Local verification does not send uploaded PDFs
@@ -141,9 +154,15 @@ Each approved ZIP contains only:
 - `sample-nda.pdf.ots`
 - `manifest.json`
 
+Packages created by earlier IdeaProof versions with `mutual-nda.*` filenames
+remain valid and can still be verified; existing stored packages are not
+renamed.
+
 The manifest identifies the approved revisions, prompt versions, word counts,
-providers, models, PDF digital fingerprints, and approval time. It excludes
-intake text, revision feedback, API keys, database files, and internal paths.
+providers, models, PDF digital fingerprints, and approval time. The technical
+specification files contain the locally appended owner declaration. The
+manifest excludes intake text, revision feedback, API keys, database files, and
+internal paths.
 
 OpenTimestamps confirmation can take hours. Use **Check confirmation** on the
 proof page later. To verify independently in IdeaProof, open **Verify proof** and

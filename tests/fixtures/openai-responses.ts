@@ -26,7 +26,7 @@ const specification: TechnicalSpecificationOutput = {
     "Provider API keys remain on the server",
     "Project records and artifacts remain in the configured local data directory",
     "Generated content can contain errors and requires review",
-    "Timestamps verify exact PDF bytes but do not prove ownership",
+    "Timestamps show when an exact approved PDF existed but do not independently verify identity or resolve competing claims",
   ],
 };
 
