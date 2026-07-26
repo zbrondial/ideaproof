@@ -80,14 +80,19 @@ async function defaultCheckDataDirectory() {
 export async function handleSetup(
   options: {
     openAiApiKey?: string;
+    anthropicApiKey?: string;
     checkDataDirectory?: () => Promise<boolean>;
     detectPython?: () => string | null | Promise<string | null>;
     detectOts?: () => string | null | Promise<string | null>;
   } = {},
 ) {
-  const hasKey = Boolean(
+  const hasOpenAiKey = Boolean(
     (options.openAiApiKey ?? process.env.OPENAI_API_KEY ?? "").trim(),
   );
+  const hasAnthropicKey = Boolean(
+    (options.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY ?? "").trim(),
+  );
+  const hasProvider = hasOpenAiKey || hasAnthropicKey;
   let dataDirectoryReady = false;
   try {
     dataDirectoryReady = await (
@@ -101,7 +106,7 @@ export async function handleSetup(
     (options.detectOts ?? defaultDetectOts)(),
   ]);
   const checks = [
-    hasKey
+    hasOpenAiKey
       ? {
           ok: true,
           code: "SETUP_OPENAI_KEY_READY",
@@ -111,6 +116,30 @@ export async function handleSetup(
           ok: false,
           code: "SETUP_OPENAI_KEY_MISSING",
           message: "Add OPENAI_API_KEY to .env.",
+          command: "cp .env.example .env",
+        },
+    hasAnthropicKey
+      ? {
+          ok: true,
+          code: "SETUP_ANTHROPIC_KEY_READY",
+          message: "Anthropic API key is configured.",
+        }
+      : {
+          ok: false,
+          code: "SETUP_ANTHROPIC_KEY_MISSING",
+          message: "ANTHROPIC_API_KEY is not configured.",
+          command: "Add it to .env to enable Claude.",
+        },
+    hasProvider
+      ? {
+          ok: true,
+          code: "SETUP_PROVIDER_READY",
+          message: "At least one AI provider is configured.",
+        }
+      : {
+          ok: false,
+          code: "SETUP_PROVIDER_MISSING",
+          message: "Configure an OpenAI or Anthropic API key.",
           command: "cp .env.example .env",
         },
     dataDirectoryReady
@@ -151,7 +180,7 @@ export async function handleSetup(
         },
   ];
   return NextResponse.json({
-    ready: checks.every((check) => check.ok),
+    ready: hasProvider && dataDirectoryReady && Boolean(python) && Boolean(ots),
     checks,
   });
 }

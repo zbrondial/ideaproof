@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 
-import { loadConfig, loadStorageConfig } from "@/server/config";
+import {
+  listConfiguredProviders,
+  loadConfig,
+  loadStorageConfig,
+  requireProviderConfig,
+} from "@/server/config";
 
 const originalEnvironment = { ...process.env };
 
@@ -35,5 +40,44 @@ describe("loadConfig", () => {
     delete process.env.IDEAPROOF_DATA_DIR;
 
     expect(loadStorageConfig().dataDir).toMatch(/data$/);
+  });
+});
+
+describe("provider configuration", () => {
+  it("lists only configured providers without returning keys", () => {
+    process.env.OPENAI_API_KEY = "openai-test-key";
+    process.env.OPENAI_MODEL = "gpt-5.6";
+    delete process.env.ANTHROPIC_API_KEY;
+
+    expect(listConfiguredProviders()).toEqual([
+      { provider: "openai", model: "gpt-5.6", label: "OpenAI — gpt-5.6" },
+    ]);
+    expect(JSON.stringify(listConfiguredProviders())).not.toContain(
+      "openai-test-key",
+    );
+  });
+
+  it("orders OpenAI before Claude when both are configured", () => {
+    process.env.OPENAI_API_KEY = "openai-test-key";
+    process.env.ANTHROPIC_API_KEY = "anthropic-test-key";
+    delete process.env.ANTHROPIC_MODEL;
+
+    expect(listConfiguredProviders()).toEqual([
+      { provider: "openai", model: "gpt-5.6", label: "OpenAI — gpt-5.6" },
+      {
+        provider: "anthropic",
+        model: "claude-opus-4-8",
+        label: "Claude — claude-opus-4-8",
+      },
+    ]);
+  });
+
+  it("rejects provider and model pairs not configured on the server", () => {
+    process.env.ANTHROPIC_API_KEY = "anthropic-test-key";
+    process.env.ANTHROPIC_MODEL = "claude-opus-4-8";
+
+    expect(() =>
+      requireProviderConfig("anthropic", "claude-other"),
+    ).toThrowError(expect.objectContaining({ code: "SETUP_MODEL_UNAVAILABLE" }));
   });
 });
