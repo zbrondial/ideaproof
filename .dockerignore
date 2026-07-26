@@ -1,0 +1,8 @@
+.env
+.git
+.next
+.venv
+data
+node_modules
+playwright-report
+test-results

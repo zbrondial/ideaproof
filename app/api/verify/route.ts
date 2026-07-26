@@ -9,6 +9,7 @@ import { sha256 } from "@/server/documents/package";
 import { AppError } from "@/server/errors";
 import { checkProof as verifyProof } from "@/server/proof/ots";
 import type { VerificationResult } from "@/server/proof/parse";
+import { e2eFixturesEnabled } from "@/server/runtime-mode";
 
 const PDF_LIMIT = 10 * 1024 * 1024;
 const PROOF_LIMIT = 1024 * 1024;
@@ -130,6 +131,9 @@ export async function handleVerify(
   }
 }
 
-export function POST(request: NextRequest) {
-  return handleVerify(request);
+export async function POST(request: NextRequest) {
+  const fixtureCheck = e2eFixturesEnabled()
+    ? (await import("@/tests/fixtures/openai-responses")).fixtureCheckProof
+    : undefined;
+  return handleVerify(request, { checkProof: fixtureCheck });
 }

@@ -11,8 +11,11 @@ export default async function ProjectPage({
 }) {
   const { id } = await params;
   const project = getProjectStore().getProject(id);
+  if (project.approval) {
+    redirect(`/projects/${id}/proof`);
+  }
   redirect(
-    project.status === "review" || project.status === "pending" || project.status === "confirmed"
+    project.status === "review"
       ? `/projects/${id}/review`
       : `/projects/${id}/generating`,
   );

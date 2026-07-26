@@ -87,6 +87,21 @@ it("creates one immutable approval for revisions from the same project", () => {
       expect.objectContaining({ code: "PROJECT_IMMUTABLE" }),
     );
     expect(() =>
+      store.addRevision({
+        projectId: project.id,
+        documentType: "nda",
+        content: "# Later NDA",
+        wordCount: 2,
+        feedback: "Change it",
+        promptTemplateVersion: "nda-v1",
+        model: "gpt-5.6",
+        openaiResponseId: null,
+      }),
+    ).toThrowError(expect.objectContaining({ code: "PROJECT_IMMUTABLE" }));
+    expect(() =>
+      store.selectRevision(project.id, "nda", nda.id),
+    ).toThrowError(expect.objectContaining({ code: "PROJECT_IMMUTABLE" }));
+    expect(() =>
       store.createApproval({
         projectId: project.id,
         specificationRevisionId: specification.id,

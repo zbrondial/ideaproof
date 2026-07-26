@@ -1,9 +1,11 @@
 import { readFile } from "node:fs/promises";
+import { isAbsolute, join } from "node:path";
 
 import { NextResponse } from "next/server";
 
 import { getProjectStore } from "@/server/db/projects";
 import { AppError } from "@/server/errors";
+import { loadStorageConfig } from "@/server/config";
 
 type Store = ReturnType<typeof getProjectStore>;
 
@@ -16,7 +18,11 @@ function packageSlug(title: string, id: string) {
   return `${titleSlug || "idea"}-${id.slice(0, 8)}-proof`;
 }
 
-export async function handlePackage(projectId: string, store: Store) {
+export async function handlePackage(
+  projectId: string,
+  store: Store,
+  dataDir?: string,
+) {
   try {
     const project = store.getProject(projectId);
     if (!project.approval) {
@@ -26,7 +32,11 @@ export async function handlePackage(projectId: string, store: Store) {
         404,
       );
     }
-    const bytes = await readFile(project.approval.packagePath);
+    const packagePath =
+      dataDir && !isAbsolute(project.approval.packagePath)
+        ? join(dataDir, project.approval.packagePath)
+        : project.approval.packagePath;
+    const bytes = await readFile(packagePath);
     return new Response(new Blob([new Uint8Array(bytes)]), {
       headers: {
         "Content-Type": "application/zip",
@@ -57,5 +67,5 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return handlePackage(id, getProjectStore());
+  return handlePackage(id, getProjectStore(), loadStorageConfig().dataDir);
 }

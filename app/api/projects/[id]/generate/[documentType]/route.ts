@@ -9,6 +9,7 @@ import {
   generateDocument,
   type GeneratedDocument,
 } from "@/server/generation/service";
+import { e2eFixturesEnabled } from "@/server/runtime-mode";
 
 type ProjectStore = ReturnType<typeof getProjectStore>;
 type Generation = {
@@ -24,9 +25,23 @@ type Generation = {
 };
 
 const realGeneration: Generation = {
-  specification: (input) =>
-    generateDocument({ documentType: "specification", ...input }),
-  nda: (input) => generateDocument({ documentType: "nda", ...input }),
+  specification: async (input) => {
+    const port = e2eFixturesEnabled()
+      ? (await import("@/tests/fixtures/openai-responses"))
+          .fixtureResponsesPort
+      : undefined;
+    return generateDocument(
+      { documentType: "specification", ...input },
+      port,
+    );
+  },
+  nda: async (input) => {
+    const port = e2eFixturesEnabled()
+      ? (await import("@/tests/fixtures/openai-responses"))
+          .fixtureResponsesPort
+      : undefined;
+    return generateDocument({ documentType: "nda", ...input }, port);
+  },
 };
 
 function safeError(error: unknown) {
@@ -47,7 +62,15 @@ function safeError(error: unknown) {
 }
 
 function beginGeneration(store: ProjectStore, projectId: string) {
-  const status = store.getProject(projectId).status;
+  const project = store.getProject(projectId);
+  if (project.approval) {
+    throw new AppError(
+      "PROJECT_IMMUTABLE",
+      "Approved projects cannot generate new revisions.",
+      409,
+    );
+  }
+  const status = project.status;
   if (status === "draft" || status === "review" || status === "failed") {
     store.transitionProject(projectId, status, "generating");
   } else if (status !== "generating") {
@@ -115,9 +138,13 @@ export async function handleGenerate({
       { status: 201 },
     );
   } catch (error) {
-    const current = store.getProject(projectId);
-    if (current.status === "generating") {
-      store.transitionProject(projectId, "generating", "failed");
+    try {
+      const current = store.getProject(projectId);
+      if (current.status === "generating") {
+        store.transitionProject(projectId, "generating", "failed");
+      }
+    } catch {
+      // Preserve the original safe error when the project lookup itself failed.
     }
     return safeError(error);
   }

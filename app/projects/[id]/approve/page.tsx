@@ -7,10 +7,16 @@ export const dynamic = "force-dynamic";
 
 export default async function ApprovePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{
+    specificationRevisionId?: string;
+    ndaRevisionId?: string;
+  }>;
 }) {
   const { id } = await params;
+  const selected = await searchParams;
   const project = getProjectStore().getProject(id);
   if (project.approval) {
     return (
@@ -27,10 +33,17 @@ export default async function ApprovePage({
   }
 
   const specification = project.revisions.find(
-    (revision) => revision.id === project.selectedSpecificationRevisionId,
+    (revision) =>
+      revision.documentType === "specification" &&
+      revision.id ===
+        (selected.specificationRevisionId ??
+          project.selectedSpecificationRevisionId),
   );
   const nda = project.revisions.find(
-    (revision) => revision.id === project.selectedNdaRevisionId,
+    (revision) =>
+      revision.documentType === "nda" &&
+      revision.id ===
+        (selected.ndaRevisionId ?? project.selectedNdaRevisionId),
   );
   if (!specification || !nda) {
     return (

@@ -391,6 +391,16 @@ export function createProjectStore(filename: string) {
     }): Revision {
       return inTransaction(database, () => {
         getProjectRow(input.projectId);
+        const approval = database
+          .prepare("SELECT id FROM approvals WHERE project_id = ?")
+          .get(input.projectId);
+        if (approval) {
+          throw new AppError(
+            "PROJECT_IMMUTABLE",
+            "Approved projects cannot be revised.",
+            409,
+          );
+        }
         const versionRow = database
           .prepare(
             `SELECT COALESCE(MAX(version), 0) + 1 AS version
@@ -430,6 +440,16 @@ export function createProjectStore(filename: string) {
       revisionId: string,
     ) {
       getProjectRow(projectId);
+      const approval = database
+        .prepare("SELECT id FROM approvals WHERE project_id = ?")
+        .get(projectId);
+      if (approval) {
+        throw new AppError(
+          "PROJECT_IMMUTABLE",
+          "Approved projects cannot change selected revisions.",
+          409,
+        );
+      }
       const revision = getRevisionRow(revisionId);
       if (
         revision.project_id !== projectId ||

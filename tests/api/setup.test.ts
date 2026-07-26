@@ -19,12 +19,12 @@ it("reports missing setup without exposing environment values", async () => {
       expect.objectContaining({ code: "SETUP_OTS_MISSING" }),
     ]),
   });
-  expect(JSON.stringify(body)).not.toContain("sk-private-value");
+  expect(JSON.stringify(body)).not.toContain("private-test-key");
 });
 
 it("reports ready when all local prerequisites pass", async () => {
   const response = await handleSetup({
-    openAiApiKey: "sk-private-value",
+    openAiApiKey: "private-test-key",
     checkDataDirectory: async () => true,
     detectPython: vi.fn(() => "Python 3.12.4"),
     detectOts: vi.fn(() => "v0.7.2"),

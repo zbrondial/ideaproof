@@ -1,11 +1,15 @@
+import { isAbsolute, join } from "node:path";
+
 import { NextResponse } from "next/server";
 
+import { loadStorageConfig } from "@/server/config";
 import { getProjectStore } from "@/server/db/projects";
 import { AppError } from "@/server/errors";
 import {
   checkProof,
   type ProcessRunner,
 } from "@/server/proof/ots";
+import { e2eFixturesEnabled } from "@/server/runtime-mode";
 
 type Store = ReturnType<typeof getProjectStore>;
 type Check = (
@@ -35,10 +39,12 @@ export async function handleProofCheck({
   projectId,
   store,
   check = checkProof,
+  dataDir,
 }: {
   projectId: string;
   store: Store;
   check?: Check;
+  dataDir?: string;
 }) {
   try {
     const project = store.getProject(projectId);
@@ -53,7 +59,15 @@ export async function handleProofCheck({
     const checks = await Promise.allSettled(
       project.proofArtifacts.map(async (artifact) => {
         if (artifact.status === "confirmed") return;
-        const result = await check(artifact.pdfPath, artifact.otsPath);
+        const pdfPath =
+          dataDir && !isAbsolute(artifact.pdfPath)
+            ? join(dataDir, artifact.pdfPath)
+            : artifact.pdfPath;
+        const otsPath =
+          dataDir && !isAbsolute(artifact.otsPath)
+            ? join(dataDir, artifact.otsPath)
+            : artifact.otsPath;
+        const result = await check(pdfPath, otsPath);
         if (result.status === "confirmed") {
           store.updateProofArtifact(
             project.approval!.id,
@@ -141,5 +155,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  return handleProofCheck({ projectId: id, store: getProjectStore() });
+  const fixtureCheck = e2eFixturesEnabled()
+    ? (await import("@/tests/fixtures/openai-responses")).fixtureCheckProof
+    : undefined;
+  return handleProofCheck({
+    projectId: id,
+    store: getProjectStore(),
+    check: fixtureCheck,
+    dataDir: loadStorageConfig().dataDir,
+  });
 }

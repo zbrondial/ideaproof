@@ -5,7 +5,7 @@ import {
   rename,
   writeFile,
 } from "node:fs/promises";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -24,6 +24,7 @@ import {
 import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
 import { stampPdf } from "@/server/proof/ots";
+import { e2eFixturesEnabled } from "@/server/runtime-mode";
 
 const approvalInput = z
   .object({
@@ -35,7 +36,14 @@ const approvalInput = z
 type Store = ReturnType<typeof getProjectStore>;
 type Stamp = typeof stampPdf;
 
-async function packageApprovedProject(project: ProjectDetail) {
+function dataPath(dataDir: string, storedPath: string) {
+  return isAbsolute(storedPath) ? storedPath : join(dataDir, storedPath);
+}
+
+async function packageApprovedProject(
+  project: ProjectDetail,
+  dataDir: string,
+) {
   if (!project.approval) {
     throw new AppError("APPROVAL_NOT_FOUND", "Approval not found.", 404);
   }
@@ -61,10 +69,10 @@ async function packageApprovedProject(project: ProjectDetail) {
   }
   const [specificationPdf, specificationProof, ndaPdf, ndaProof] =
     await Promise.all([
-      readFile(specificationArtifact.pdfPath),
-      readFile(specificationArtifact.otsPath),
-      readFile(ndaArtifact.pdfPath),
-      readFile(ndaArtifact.otsPath),
+      readFile(dataPath(dataDir, specificationArtifact.pdfPath)),
+      readFile(dataPath(dataDir, specificationArtifact.otsPath)),
+      readFile(dataPath(dataDir, ndaArtifact.pdfPath)),
+      readFile(dataPath(dataDir, ndaArtifact.otsPath)),
     ]);
   const manifest: ManifestV1 = {
     schemaVersion: 1,
@@ -173,7 +181,9 @@ export async function handleApprove({
         (artifact) => artifact.status === "failed",
       );
       const retryResults = await Promise.allSettled(
-        retryArtifacts.map((artifact) => stamp(artifact.pdfPath)),
+        retryArtifacts.map((artifact) =>
+          stamp(dataPath(dataDir, artifact.pdfPath)),
+        ),
       );
       const rejected = retryResults.findIndex(
         (result) => result.status === "rejected",
@@ -214,10 +224,12 @@ export async function handleApprove({
 
       const packageBytes = await packageApprovedProject(
         store.getProject(projectId),
+        dataDir,
       );
-      const temporaryPackage = `${project.approval.packagePath}.tmp`;
+      const packagePath = dataPath(dataDir, project.approval.packagePath);
+      const temporaryPackage = `${packagePath}.tmp`;
       await writeFile(temporaryPackage, packageBytes);
-      await rename(temporaryPackage, project.approval.packagePath);
+      await rename(temporaryPackage, packagePath);
       store.transitionProject(projectId, "failed", "pending");
       return NextResponse.json(
         { status: "pending", proofUrl: `/projects/${projectId}/proof` },
@@ -258,14 +270,23 @@ export async function handleApprove({
     }
 
     const approvedAt = now().toISOString();
-    const artifactDirectory = join(
-      dataDir,
-      "approvals",
-      projectId,
-      approvalId,
-    );
+    const relativeDirectory = join("approvals", projectId, approvalId);
+    const artifactDirectory = join(dataDir, relativeDirectory);
     await mkdir(artifactDirectory, { recursive: true });
 
+    const storedPaths = {
+      specification: {
+        markdown: join(relativeDirectory, "technical-specification.md"),
+        pdf: join(relativeDirectory, "technical-specification.pdf"),
+        ots: join(relativeDirectory, "technical-specification.pdf.ots"),
+      },
+      nda: {
+        markdown: join(relativeDirectory, "mutual-nda.md"),
+        pdf: join(relativeDirectory, "mutual-nda.pdf"),
+        ots: join(relativeDirectory, "mutual-nda.pdf.ots"),
+      },
+      package: join(relativeDirectory, "ideaproof-package.zip"),
+    };
     const paths = {
       specification: {
         markdown: join(artifactDirectory, "technical-specification.md"),
@@ -307,20 +328,20 @@ export async function handleApprove({
       projectId,
       specificationRevisionId: specification.id,
       ndaRevisionId: nda.id,
-      packagePath: paths.package,
+      packagePath: storedPaths.package,
       artifacts: [
         {
           documentType: "specification",
-          pdfPath: paths.specification.pdf,
-          markdownPath: paths.specification.markdown,
-          otsPath: paths.specification.ots,
+          pdfPath: storedPaths.specification.pdf,
+          markdownPath: storedPaths.specification.markdown,
+          otsPath: storedPaths.specification.ots,
           sha256: sha256(specificationPdf),
         },
         {
           documentType: "nda",
-          pdfPath: paths.nda.pdf,
-          markdownPath: paths.nda.markdown,
-          otsPath: paths.nda.ots,
+          pdfPath: storedPaths.nda.pdf,
+          markdownPath: storedPaths.nda.markdown,
+          otsPath: storedPaths.nda.ots,
           sha256: sha256(ndaPdf),
         },
       ],
@@ -359,6 +380,7 @@ export async function handleApprove({
 
     const packageBytes = await packageApprovedProject(
       store.getProject(projectId),
+      dataDir,
     );
     const temporaryPackage = `${paths.package}.tmp`;
     await writeFile(temporaryPackage, packageBytes);
@@ -395,11 +417,15 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
+    const fixtureStamp = e2eFixturesEnabled()
+      ? (await import("@/tests/fixtures/openai-responses")).fixtureStampPdf
+      : undefined;
     return handleApprove({
       projectId: id,
       body: await request.json(),
       store: getProjectStore(),
       dataDir: loadStorageConfig().dataDir,
+      stamp: fixtureStamp,
     });
   } catch {
     return NextResponse.json(

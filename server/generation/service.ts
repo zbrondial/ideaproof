@@ -36,6 +36,35 @@ type NdaInput = {
 export type GenerationInput = SpecificationInput | NdaInput;
 type StructuredOutput = TechnicalSpecificationOutput | MutualNdaOutput;
 
+const prohibitedNdaClauses = [
+  /\bgovern(?:ing|ed)\b/i,
+  /\bchoice[-\s]of[-\s]law\b/i,
+  /\bjurisdiction\b/i,
+  /\bvenue\b/i,
+  /\bforum\b/i,
+  /\b(?:construed|interpreted)\s+(?:under|according to|in accordance with)\b/i,
+  /\blaws?\s+of\b[^.]{0,100}\b(?:apply|govern|control)\b/i,
+  /\b(?:submit|consent)\w*\s+[^.]{0,40}\bcourts?\b/i,
+  /\bcourts?\s+(?:of|in|located|situated|shall|will|have)\b/i,
+];
+
+function validateDocumentContent(
+  documentType: GenerationInput["documentType"],
+  output: StructuredOutput,
+) {
+  const content = JSON.stringify(output);
+  if (
+    documentType === "nda" &&
+    prohibitedNdaClauses.some((pattern) => pattern.test(content))
+  ) {
+    throw new AppError(
+      "OPENAI_OUTPUT_INVALID",
+      "The generated NDA included a prohibited governing-law clause.",
+      422,
+    );
+  }
+}
+
 export type ResponsesPort = {
   parse(request: {
     documentType: GenerationInput["documentType"];
@@ -93,6 +122,7 @@ export async function generateDocument(
     prompt: request.prompt,
     schema: request.schema,
   });
+  validateDocumentContent(input.documentType, response.parsed);
   let markdown = request.render(response.parsed);
   let wordCount = countWords(markdown);
 
@@ -107,6 +137,7 @@ ${JSON.stringify(response.parsed)}
 ${SHORTEN_INSTRUCTION}`,
       schema: request.schema,
     });
+    validateDocumentContent(input.documentType, response.parsed);
     markdown = request.render(response.parsed);
     wordCount = countWords(markdown);
   }
@@ -147,6 +178,7 @@ ${JSON.stringify({
     prompt: revisionPrompt,
     schema: base.schema,
   });
+  validateDocumentContent(input.documentType, response.parsed);
   let markdown = base.render(response.parsed);
   let wordCount = countWords(markdown);
   if (wordCount > base.limit) {
@@ -160,6 +192,7 @@ ${JSON.stringify(response.parsed)}
 ${SHORTEN_INSTRUCTION}`,
       schema: base.schema,
     });
+    validateDocumentContent(input.documentType, response.parsed);
     markdown = base.render(response.parsed);
     wordCount = countWords(markdown);
   }

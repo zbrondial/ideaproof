@@ -128,7 +128,10 @@ export function ReviewWorkspace({
           >
             Revision history
           </Link>
-          <Link className="button" href={`/projects/${projectId}/approve`}>
+          <Link
+            className="button"
+            href={`/projects/${projectId}/approve?specificationRevisionId=${encodeURIComponent(selected.specification)}&ndaRevisionId=${encodeURIComponent(selected.nda)}`}
+          >
             Approve selected revisions
           </Link>
         </div>

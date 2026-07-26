@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 import { ReviewWorkspace } from "@/components/review-workspace";
 import { getProjectStore } from "@/server/db/projects";
 
@@ -10,6 +12,9 @@ export default async function ReviewPage({
 }) {
   const { id } = await params;
   const project = getProjectStore().getProject(id);
+  if (project.approval) {
+    redirect(`/projects/${id}/proof`);
+  }
   const specification =
     project.revisions.find(
       (item) => item.id === project.selectedSpecificationRevisionId,

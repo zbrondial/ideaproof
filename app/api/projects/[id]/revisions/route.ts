@@ -8,6 +8,7 @@ import {
   type GeneratedDocument,
   type GenerationInput,
 } from "@/server/generation/service";
+import { e2eFixturesEnabled } from "@/server/runtime-mode";
 
 const revisionRequestSchema = z
   .object({
@@ -27,8 +28,16 @@ type RevisionGeneration = {
 };
 
 const realGeneration: RevisionGeneration = {
-  revise: ({ currentMarkdown, ...input }) =>
-    reviseDocument({ ...input, currentRevision: currentMarkdown }),
+  revise: async ({ currentMarkdown, ...input }) => {
+    const port = e2eFixturesEnabled()
+      ? (await import("@/tests/fixtures/openai-responses"))
+          .fixtureResponsesPort
+      : undefined;
+    return reviseDocument(
+      { ...input, currentRevision: currentMarkdown },
+      port,
+    );
+  },
 };
 
 export async function handleRevision({
@@ -45,6 +54,13 @@ export async function handleRevision({
   try {
     const input = revisionRequestSchema.parse(body);
     const project = store.getProject(projectId);
+    if (project.approval) {
+      throw new AppError(
+        "PROJECT_IMMUTABLE",
+        "Approved projects cannot be revised.",
+        409,
+      );
+    }
     const revision = project.revisions.find(
       (item) =>
         item.id === input.revisionId &&
@@ -97,6 +113,14 @@ export async function handleRevision({
       { status: 201 },
     );
   } catch (error) {
+    try {
+      const current = store.getProject(projectId);
+      if (current.status === "generating") {
+        store.transitionProject(projectId, "generating", "failed");
+      }
+    } catch {
+      // Preserve the original safe error when recovery is not possible.
+    }
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {

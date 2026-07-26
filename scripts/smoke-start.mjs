@@ -1,7 +1,8 @@
 import { spawn } from "node:child_process";
 
-const url = "http://127.0.0.1:3000";
-const child = spawn("npm", ["start"], {
+const port = process.env.IDEAPROOF_SMOKE_PORT ?? "3000";
+const url = `http://127.0.0.1:${port}`;
+const child = spawn("npm", ["start", "--", "--port", port], {
   cwd: process.cwd(),
   env: process.env,
   stdio: ["ignore", "pipe", "pipe"],
@@ -24,9 +25,12 @@ try {
       throw new Error(`IdeaProof exited before responding.\n${output}`);
     }
     try {
-      const response = await fetch(url);
-      if (response.status === 200) {
-        process.stdout.write("IdeaProof responded with 200\n");
+      const [home, setup] = await Promise.all([
+        fetch(url),
+        fetch(`${url}/api/setup`),
+      ]);
+      if (home.status === 200 && setup.status === 200) {
+        process.stdout.write("IdeaProof home and setup checks responded with 200\n");
         status = 0;
         break;
       }

@@ -1,6 +1,6 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 
 import { unzipSync } from "fflate";
 import { afterEach, expect, it } from "vitest";
@@ -81,7 +81,18 @@ it("approves exact revisions and writes an immutable proof package", async () =>
     const detail = store.getProject(project.id);
     expect(detail.status).toBe("pending");
     expect(detail.approval?.approvedAt).toBe("2026-07-25T00:00:00.000Z");
-    const zip = unzipSync(readFileSync(detail.approval!.packagePath));
+    expect(isAbsolute(detail.approval!.packagePath)).toBe(false);
+    expect(
+      detail.proofArtifacts.every(
+        (artifact) =>
+          !isAbsolute(artifact.pdfPath) &&
+          !isAbsolute(artifact.markdownPath) &&
+          !isAbsolute(artifact.otsPath),
+      ),
+    ).toBe(true);
+    const zip = unzipSync(
+      readFileSync(join(dataDir, detail.approval!.packagePath)),
+    );
     expect(Object.keys(zip).sort()).toEqual([
       "manifest.json",
       "mutual-nda.md",
@@ -144,7 +155,9 @@ it("retains rendered artifacts and records a retryable timestamp failure", async
       ]),
     );
     for (const artifact of detail.proofArtifacts) {
-      expect(readFileSync(artifact.pdfPath).byteLength).toBeGreaterThan(1_000);
+      expect(
+        readFileSync(join(dataDir, artifact.pdfPath)).byteLength,
+      ).toBeGreaterThan(1_000);
     }
 
     const hashesBeforeRetry = detail.proofArtifacts.map(
@@ -170,9 +183,9 @@ it("retains rendered artifacts and records a retryable timestamp failure", async
     expect(retried.proofArtifacts.map((artifact) => artifact.sha256)).toEqual(
       hashesBeforeRetry,
     );
-    expect(readFileSync(retried.approval!.packagePath).byteLength).toBeGreaterThan(
-      100,
-    );
+    expect(
+      readFileSync(join(dataDir, retried.approval!.packagePath)).byteLength,
+    ).toBeGreaterThan(100);
   } finally {
     store.closeAndRemove();
   }
