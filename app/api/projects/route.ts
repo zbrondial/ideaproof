@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { listConfiguredProviders } from "@/server/config";
 import { getProjectStore, type ProjectStatus } from "@/server/db/projects";
-import { AppError } from "@/server/errors";
 
 const projectInputSchema = z
   .object({
@@ -11,6 +10,8 @@ const projectInputSchema = z
     technologyPreference: z.string().trim().max(1_000).default(""),
     ndaPurpose: z.string().trim().min(10).max(2_000),
     ndaDetails: z.string().trim().max(4_000).default(""),
+    provider: z.enum(["openai", "anthropic"]),
+    model: z.string().trim().min(1).max(120),
   })
   .strict();
 
@@ -26,19 +27,20 @@ const statuses = new Set<ProjectStatus>([
 export async function POST(request: Request) {
   try {
     const input = projectInputSchema.parse(await request.json());
-    const selected = listConfiguredProviders()[0];
-    if (!selected) {
-      throw new AppError(
-        "SETUP_PROVIDER_MISSING",
-        "Configure an OpenAI or Anthropic API key.",
-        503,
+    const available = listConfiguredProviders().some(
+      ({ provider, model }) =>
+        provider === input.provider && model === input.model,
+    );
+    if (!available) {
+      return NextResponse.json(
+        {
+          code: "PROJECT_MODEL_UNAVAILABLE",
+          message: "Choose a model currently configured on this machine.",
+        },
+        { status: 400 },
       );
     }
-    const project = getProjectStore().createProject({
-      ...input,
-      provider: selected.provider,
-      model: selected.model,
-    });
+    const project = getProjectStore().createProject(input);
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError || error instanceof SyntaxError) {

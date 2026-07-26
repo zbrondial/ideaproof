@@ -1,9 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
-export function ProjectForm() {
+import type { ProviderSummary } from "@/server/config";
+
+export function ProjectForm({
+  providers,
+}: {
+  providers: ProviderSummary[];
+}) {
   const router = useRouter();
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -13,6 +20,9 @@ export function ProjectForm() {
     setError("");
     setSubmitting(true);
     const form = new FormData(event.currentTarget);
+    const provider = providers.find(
+      (item) => item.provider === form.get("provider"),
+    );
 
     try {
       const response = await fetch("/api/projects", {
@@ -23,6 +33,8 @@ export function ProjectForm() {
           technologyPreference: form.get("technologyPreference"),
           ndaPurpose: form.get("ndaPurpose"),
           ndaDetails: form.get("ndaDetails"),
+          provider: provider?.provider,
+          model: provider?.model,
         }),
       });
       const body = await response.json();
@@ -40,8 +52,55 @@ export function ProjectForm() {
 
   return (
     <form className="project-form" onSubmit={submit}>
+      <aside className="storage-callout">
+        <strong>Stored on this machine</strong>
+        <p>
+          Your project and generated documents are saved in your local
+          IdeaProof data folder. Generation sends the required information to
+          your selected AI provider.
+        </p>
+      </aside>
+      {providers.length > 1 ? (
+        <fieldset className="model-picker">
+          <legend>Model for this project</legend>
+          <div className="model-options">
+            {providers.map((provider, index) => (
+              <label key={`${provider.provider}:${provider.model}`}>
+                <input
+                  type="radio"
+                  name="provider"
+                  value={provider.provider}
+                  defaultChecked={index === 0}
+                />
+                <span>{provider.label}</span>
+              </label>
+            ))}
+          </div>
+          <p>
+            This choice applies to both documents and every later revision.
+          </p>
+        </fieldset>
+      ) : providers.length === 1 ? (
+        <div className="model-summary">
+          <span>Model for this project</span>
+          <strong>{providers[0].label}</strong>
+          <input
+            type="hidden"
+            name="provider"
+            value={providers[0].provider}
+          />
+        </div>
+      ) : (
+        <div className="provider-missing" role="status">
+          <strong>Set up an AI provider</strong>
+          <p>
+            Add an OpenAI or Anthropic API key before creating documents.{" "}
+            <Link href="/setup">Open Setup</Link>
+          </p>
+        </div>
+      )}
       <div className="field">
-        <label htmlFor="idea">Your idea</label>
+        <label htmlFor="idea">Raw software idea</label>
         <textarea
           id="idea"
           name="idea"
@@ -54,7 +113,7 @@ export function ProjectForm() {
       </div>
       <div className="field">
         <label htmlFor="technologyPreference">
-          Technology preference <span>Optional</span>
+          Preferred technology or target tech stack <span>Optional</span>
         </label>
         <input
           id="technologyPreference"
@@ -97,11 +156,17 @@ export function ProjectForm() {
           {error}
         </p>
       ) : null}
-      <button className="button" type="submit" disabled={submitting}>
-        {submitting ? "Creating project…" : "Create documents"}
+      <button
+        className="button"
+        type="submit"
+        disabled={submitting || providers.length === 0}
+      >
+        {submitting
+          ? "Creating project…"
+          : "Generate technical specification and sample NDA"}
       </button>
       <p className="submit-note">
-        Generation sends the required content to OpenAI using your API key.
+        One configured model is used for this project and all its revisions.
       </p>
     </form>
   );

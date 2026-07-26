@@ -823,6 +823,111 @@ p {
   border-top: 1px solid var(--border);
 }
 
+.storage-callout,
+.provider-missing {
+  padding: 16px 18px;
+  border: 1px solid oklch(0.32 0.09 245);
+  border-radius: 8px;
+  background: oklch(0.18 0.045 245);
+}
+
+.storage-callout strong,
+.provider-missing strong {
+  color: var(--accent-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.storage-callout p,
+.provider-missing p {
+  margin: 5px 0 0;
+  color: oklch(0.72 0.03 245);
+  font-size: 0.84rem;
+}
+
+.provider-missing a {
+  color: var(--accent-light);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.model-picker {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.model-picker legend,
+.model-summary > span {
+  margin-bottom: 8px;
+  font-size: 0.93rem;
+  font-weight: 600;
+}
+
+.model-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.model-options label {
+  position: relative;
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.model-options label:has(input:checked) {
+  border-color: var(--accent);
+  background: oklch(0.18 0.04 245);
+}
+
+.model-options input {
+  width: 16px;
+  min-height: 16px;
+  margin: 0;
+  accent-color: var(--accent-light);
+}
+
+.model-options span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.86rem;
+}
+
+.model-picker > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.model-summary {
+  display: grid;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+}
+
+.model-summary > span {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.model-summary strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -830,7 +935,7 @@ p {
 
 .field label {
   font-size: 0.93rem;
-  font-weight: 680;
+  font-weight: 600;
 }
 
 .field label span {
@@ -845,7 +950,7 @@ select,
 textarea {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 6px;
   background: var(--surface);
   color: var(--text);
   transition:
@@ -1348,6 +1453,10 @@ textarea:focus {
 
   .hero-actions {
     display: grid;
+  }
+
+  .model-options {
+    grid-template-columns: 1fr;
   }
 
   .workflow-section {
