@@ -9,6 +9,7 @@ let POST: typeof import("@/app/api/projects/route").POST;
 let GET: typeof import("@/app/api/projects/route").GET;
 
 const validProjectInput = {
+  ownerName: "Ada Lovelace",
   idea: "A browser app that timestamps concise idea documents",
   technologyPreference: "",
   ndaPurpose: "Discuss a possible collaboration",
@@ -49,9 +50,33 @@ it("creates a local draft without legal-detail fields", async () => {
 
   expect(response.status).toBe(201);
   const project = await response.json();
-  expect(project).toMatchObject({ status: "draft" });
+  expect(project).toMatchObject({
+    ownerName: "Ada Lovelace",
+    status: "draft",
+  });
   expect(project).not.toHaveProperty("packagePath");
   expect(project).not.toHaveProperty("dataDir");
+});
+
+it.each([
+  ["empty", ""],
+  ["too long", "A".repeat(121)],
+  ["line break", "Ada\nLovelace"],
+  ["Markdown controls", "**Ada**"],
+])("rejects an %s owner name", async (_case, ownerName) => {
+  const response = await POST(
+    jsonRequest({
+      ...validProjectInput,
+      ownerName,
+      provider: "openai",
+      model: "gpt-5.6",
+    }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({
+    code: "PROJECT_INPUT_INVALID",
+  });
 });
 
 it("lists matching projects through safe summaries", async () => {

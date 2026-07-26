@@ -29,6 +29,7 @@ export function ProjectForm({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          ownerName: form.get("ownerName"),
           idea: form.get("idea"),
           technologyPreference: form.get("technologyPreference"),
           ndaPurpose: form.get("ndaPurpose"),
@@ -99,6 +100,21 @@ export function ProjectForm({
           </p>
         </div>
       )}
+      <div className="field">
+        <label htmlFor="ownerName">Owner’s full name</label>
+        <input
+          id="ownerName"
+          name="ownerName"
+          required
+          maxLength={120}
+          autoComplete="name"
+          aria-describedby="owner-name-help"
+        />
+        <p className="field-help" id="owner-name-help">
+          This name appears on the technical specification and becomes part of
+          its timestamped PDF.
+        </p>
+      </div>
       <div className="field">
         <label htmlFor="idea">Raw software idea</label>
         <textarea

@@ -21,6 +21,7 @@ export type ProofStatus = "pending" | "confirmed" | "failed";
 export type Project = {
   id: string;
   title: string;
+  ownerName: string;
   idea: string;
   technologyPreference: string;
   ndaPurpose: string;
@@ -86,6 +87,7 @@ export type ProjectDetail = Project & {
 type ProjectRow = {
   id: string;
   title: string;
+  owner_name: string;
   idea: string;
   technology_preference: string;
   nda_purpose: string;
@@ -151,6 +153,7 @@ function projectFromRow(row: ProjectRow): Project {
   return {
     id: row.id,
     title: row.title,
+    ownerName: row.owner_name,
     idea: row.idea,
     technologyPreference: row.technology_preference,
     ndaPurpose: row.nda_purpose,
@@ -254,6 +257,7 @@ export function createProjectStore(filename: string) {
 
   return {
     createProject(input: {
+      ownerName?: string;
       idea: string;
       technologyPreference?: string;
       ndaPurpose: string;
@@ -266,13 +270,14 @@ export function createProjectStore(filename: string) {
       database
         .prepare(
           `INSERT INTO projects
-            (id, title, idea, technology_preference, nda_purpose, nda_details,
+            (id, title, owner_name, idea, technology_preference, nda_purpose, nda_details,
              provider, model, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
         )
         .run(
           id,
           deriveTitle(input.idea),
+          input.ownerName ?? "",
           input.idea,
           input.technologyPreference ?? "",
           input.ndaPurpose,

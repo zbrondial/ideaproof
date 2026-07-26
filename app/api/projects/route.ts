@@ -4,8 +4,16 @@ import { z } from "zod";
 import { listConfiguredProviders } from "@/server/config";
 import { getProjectStore, type ProjectStatus } from "@/server/db/projects";
 
+const ownerNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(120)
+  .regex(/^[\p{L}\p{M}\p{N}][\p{L}\p{M}\p{N} .,'’\u002D]*$/u);
+
 const projectInputSchema = z
   .object({
+    ownerName: ownerNameSchema,
     idea: z.string().trim().min(20).max(10_000),
     technologyPreference: z.string().trim().max(1_000).default(""),
     ndaPurpose: z.string().trim().min(10).max(2_000),
@@ -47,7 +55,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           code: "PROJECT_INPUT_INVALID",
-          message: "Add an idea and NDA purpose within the stated limits.",
+          message:
+            "Add an owner name, idea, and NDA purpose within the stated limits.",
         },
         { status: 400 },
       );

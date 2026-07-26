@@ -62,6 +62,10 @@ it("shows only configured models and defaults to OpenAI when both are available"
     /<input(?=[^>]*name="provider")(?=[^>]*value="openai")(?=[^>]*checked="")[^>]*>/,
   );
   expect(both).toContain("Claude — claude-opus-4-8");
+  expect(both).toContain('<label for="ownerName">Owner’s full name</label>');
+  expect(both).toContain(
+    "This name appears on the technical specification and becomes part of its timestamped PDF.",
+  );
 
   const none = renderToStaticMarkup(<ProjectForm providers={[]} />);
   expect(none).toContain("Set up an AI provider");

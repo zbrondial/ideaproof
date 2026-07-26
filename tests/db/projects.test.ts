@@ -10,6 +10,7 @@ import { createProjectStore } from "@/server/db/projects";
 import { openTestStore } from "../helpers/open-test-store";
 
 const projectInput = {
+  ownerName: "Ada Lovelace",
   idea: "  A local proof tool for concise idea documents.  ",
   technologyPreference: "TypeScript",
   ndaPurpose: "Evaluate a possible collaboration",
@@ -25,6 +26,7 @@ it("creates, lists, and loads a project with a normalized title", () => {
     const project = store.createProject(projectInput);
 
     expect(project.title).toBe("A local proof tool for concise idea documents.");
+    expect(project.ownerName).toBe("Ada Lovelace");
     expect(project.idea).toBe(projectInput.idea);
     expect(project.status).toBe("draft");
     expect(store.listProjects({ search: "proof tool" })).toEqual([
@@ -224,6 +226,7 @@ it("migrates existing OpenAI revisions without losing their model or response ID
     const migrated = createProjectStore(databasePath);
     try {
       expect(migrated.getProject(projectId)).toMatchObject({
+        ownerName: "",
         provider: "openai",
         model: "gpt-5.6",
         revisions: [
