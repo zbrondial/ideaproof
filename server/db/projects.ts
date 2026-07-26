@@ -496,6 +496,8 @@ export function createProjectStore(filename: string) {
     },
 
     createApproval(input: {
+      approvalId?: string;
+      approvedAt?: string;
       projectId: string;
       specificationRevisionId: string;
       ndaRevisionId: string;
@@ -536,8 +538,8 @@ export function createProjectStore(filename: string) {
           );
         }
 
-        const id = randomUUID();
-        const approvedAt = new Date().toISOString();
+        const id = input.approvalId ?? randomUUID();
+        const approvedAt = input.approvedAt ?? new Date().toISOString();
         database
           .prepare(
             `INSERT INTO approvals
@@ -577,6 +579,50 @@ export function createProjectStore(filename: string) {
             .get(id) as ApprovalRow,
         );
       });
+    },
+
+    updateProofArtifact(
+      approvalId: string,
+      documentType: DocumentType,
+      result: {
+        status: ProofStatus;
+        bitcoinBlockHeight?: number | null;
+        confirmedAt?: string | null;
+        errorCode?: string | null;
+      },
+    ): ProofArtifact {
+      const checkedAt = new Date().toISOString();
+      const changed = database
+        .prepare(
+          `UPDATE proof_artifacts
+           SET status = ?, bitcoin_block_height = ?, confirmed_at = ?,
+               last_checked_at = ?, error_code = ?
+           WHERE approval_id = ? AND document_type = ?`,
+        )
+        .run(
+          result.status,
+          result.bitcoinBlockHeight ?? null,
+          result.confirmedAt ?? null,
+          checkedAt,
+          result.errorCode ?? null,
+          approvalId,
+          documentType,
+        );
+      if (changed.changes !== 1) {
+        throw new AppError(
+          "PROOF_ARTIFACT_NOT_FOUND",
+          "Proof artifact not found.",
+          404,
+        );
+      }
+      return proofFromRow(
+        database
+          .prepare(
+            `SELECT * FROM proof_artifacts
+             WHERE approval_id = ? AND document_type = ?`,
+          )
+          .get(approvalId, documentType) as ProofArtifactRow,
+      );
     },
 
     close() {
