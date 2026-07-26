@@ -4,6 +4,7 @@ import { DocumentPreview } from "@/components/document-preview";
 import { ProofStatus } from "@/components/proof-status";
 import { StatusBadge } from "@/components/status-badge";
 import { getProjectStore } from "@/server/db/projects";
+import { withOwnerDeclaration } from "@/server/documents/attribution";
 
 export const dynamic = "force-dynamic";
 
@@ -97,7 +98,16 @@ export default async function ProofPage({
               <h3>{documentLabels[revision.documentType]}</h3>
               <span>Version {revision.version}</span>
             </div>
-            <DocumentPreview markdown={revision.content} />
+            <DocumentPreview
+              markdown={
+                revision.documentType === "specification"
+                  ? withOwnerDeclaration(
+                      revision.content,
+                      project.ownerName,
+                    )
+                  : revision.content
+              }
+            />
           </article>
         ))}
       </section>

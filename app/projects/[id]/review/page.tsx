@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { ReviewWorkspace } from "@/components/review-workspace";
 import { getProjectStore } from "@/server/db/projects";
+import { withOwnerDeclaration } from "@/server/documents/attribution";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,14 @@ export default async function ReviewPage({
   const nda =
     project.revisions.find((item) => item.id === project.selectedNdaRevisionId) ??
     project.revisions.filter((item) => item.documentType === "nda").at(-1);
+  const displayedRevisions = project.revisions.map((revision) =>
+    revision.documentType === "specification"
+      ? {
+          ...revision,
+          content: withOwnerDeclaration(revision.content, project.ownerName),
+        }
+      : revision,
+  );
 
   if (!specification || !nda) {
     return (
@@ -52,7 +61,7 @@ export default async function ReviewPage({
       </header>
       <ReviewWorkspace
         projectId={id}
-        revisions={project.revisions}
+        revisions={displayedRevisions}
         initialSpecificationId={specification.id}
         initialNdaId={nda.id}
       />

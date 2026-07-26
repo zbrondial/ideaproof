@@ -106,9 +106,11 @@ export function ProjectForm({
           id="ownerName"
           name="ownerName"
           required
+          minLength={1}
           maxLength={120}
           autoComplete="name"
           aria-describedby="owner-name-help"
+          placeholder="For example: Ada Lovelace"
         />
         <p className="field-help" id="owner-name-help">
           This name appears on the technical specification and becomes part of

@@ -41,12 +41,16 @@ function testRevision(projectId: string, documentType: DocumentType) {
 }
 
 export function createGenerationHarness(
-  options: { withExistingDocuments: boolean } = {
+  options: {
+    withExistingDocuments: boolean;
+    ownerName?: string;
+  } = {
     withExistingDocuments: false,
   },
 ) {
   const store = openTestStore();
   const project = store.createProject({
+    ownerName: options.ownerName,
     idea: "A local web app that creates concise idea documents and timestamps approved PDFs.",
     technologyPreference: "Next.js",
     ndaPurpose: "Discuss a possible product collaboration",

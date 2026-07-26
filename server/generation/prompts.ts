@@ -1,4 +1,4 @@
-export const SPEC_PROMPT_VERSION = "spec-v2";
+export const SPEC_PROMPT_VERSION = "spec-v3";
 export const NDA_PROMPT_VERSION = "nda-v2";
 
 function userFacts(value: object) {

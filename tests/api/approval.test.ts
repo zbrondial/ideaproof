@@ -6,6 +6,7 @@ import { strFromU8, unzipSync } from "fflate";
 import { afterEach, expect, it } from "vitest";
 
 import { handleApprove } from "@/app/api/projects/[id]/approve/route";
+import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
 
 import { openTestStore } from "../helpers/open-test-store";
@@ -20,6 +21,7 @@ afterEach(() => {
 
 function reviewProject(store: ReturnType<typeof openTestStore>) {
   const project = store.createProject({
+    ownerName: "Private Owner Sentinel",
     idea: "A local app that makes concise idea documents and timestamp proofs",
     ndaPurpose: "Discuss a possible product collaboration",
     provider: "openai",
@@ -61,6 +63,11 @@ it("approves exact revisions and writes an immutable proof package", async () =>
   temporaryDirectories.push(dataDir);
   try {
     const { project, specification, nda } = reviewProject(store);
+    const rendered: Array<Parameters<typeof renderDocumentPdf>[0]> = [];
+    const renderPdf: typeof renderDocumentPdf = async (input) => {
+      rendered.push(input);
+      return renderDocumentPdf(input);
+    };
     const response = await handleApprove({
       projectId: project.id,
       body: {
@@ -75,6 +82,7 @@ it("approves exact revisions and writes an immutable proof package", async () =>
       },
       now: () => new Date("2026-07-25T00:00:00.000Z"),
       approvalId: "00000000-0000-4000-8000-000000000002",
+      renderPdf,
     });
 
     expect(response.status).toBe(201);
@@ -97,6 +105,23 @@ it("approves exact revisions and writes an immutable proof package", async () =>
     const zip = unzipSync(
       readFileSync(join(dataDir, detail.approval!.packagePath)),
     );
+    const renderedSpecification = rendered.find(
+      (document) => document.documentType === "specification",
+    );
+    expect(renderedSpecification?.markdown).toContain(
+      "**Prepared and claimed by:** Private Owner Sentinel",
+    );
+    expect(
+      renderedSpecification?.markdown.match(/Prepared and claimed by/g),
+    ).toHaveLength(1);
+    expect(strFromU8(zip["technical-specification.md"])).toContain(
+      "**Prepared and claimed by:** Private Owner Sentinel",
+    );
+    expect(
+      strFromU8(zip["technical-specification.md"]).match(
+        /Prepared and claimed by/g,
+      ),
+    ).toHaveLength(1);
     expect(Object.keys(zip).sort()).toEqual([
       "manifest.json",
       "mutual-nda.md",

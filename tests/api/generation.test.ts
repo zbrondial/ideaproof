@@ -34,6 +34,23 @@ it("generates documents independently and retains a successful sibling", async (
   }
 });
 
+it("keeps the locally stored owner name out of generation provider input", async () => {
+  const harness = createGenerationHarness({
+    withExistingDocuments: false,
+    ownerName: "Private Owner Sentinel",
+  });
+  try {
+    harness.mockGeneration.specification.mockResolvedValue(validGeneratedSpec);
+
+    expect((await harness.generate("specification")).status).toBe(201);
+    expect(
+      JSON.stringify(harness.mockGeneration.specification.mock.calls),
+    ).not.toContain("Private Owner Sentinel");
+  } finally {
+    harness.close();
+  }
+});
+
 it("returns a safe 404 when the project does not exist", async () => {
   const harness = createGenerationHarness();
   try {

@@ -21,6 +21,7 @@ import {
   sha256,
   type ManifestV2,
 } from "@/server/documents/package";
+import { withOwnerDeclaration } from "@/server/documents/attribution";
 import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
 import { stampPdf } from "@/server/proof/ots";
@@ -109,7 +110,7 @@ async function packageApprovedProject(
   return buildProofPackage(
     {
       "technical-specification.md": new TextEncoder().encode(
-        specification.content,
+        withOwnerDeclaration(specification.content, project.ownerName),
       ),
       "technical-specification.pdf": specificationPdf,
       "technical-specification.pdf.ots": specificationProof,
@@ -144,6 +145,7 @@ export async function handleApprove({
   store,
   dataDir,
   stamp = stampPdf,
+  renderPdf = renderDocumentPdf,
   now = () => new Date(),
   approvalId = randomUUID(),
 }: {
@@ -152,6 +154,7 @@ export async function handleApprove({
   store: Store;
   dataDir: string;
   stamp?: Stamp;
+  renderPdf?: typeof renderDocumentPdf;
   now?: () => Date;
   approvalId?: string;
 }) {
@@ -304,13 +307,16 @@ export async function handleApprove({
     };
 
     const [specificationPdf, ndaPdf] = await Promise.all([
-      renderDocumentPdf({
+      renderPdf({
         title: "Technical Specification",
-        markdown: specification.content,
+        markdown: withOwnerDeclaration(
+          specification.content,
+          project.ownerName,
+        ),
         approvedAt,
         documentType: "specification",
       }),
-      renderDocumentPdf({
+      renderPdf({
         title: "Mutual Non-Disclosure Agreement",
         markdown: nda.content,
         approvedAt,
@@ -318,7 +324,10 @@ export async function handleApprove({
       }),
     ]);
     await Promise.all([
-      writeFile(paths.specification.markdown, specification.content),
+      writeFile(
+        paths.specification.markdown,
+        withOwnerDeclaration(specification.content, project.ownerName),
+      ),
       writeFile(paths.specification.pdf, specificationPdf),
       writeFile(paths.nda.markdown, nda.content),
       writeFile(paths.nda.pdf, ndaPdf),

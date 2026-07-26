@@ -42,7 +42,7 @@ it("uses the canonical specification order and 1000-word ceiling", () => {
     prompt.indexOf("Security Considerations"),
   );
   expect({ SPEC_PROMPT_VERSION, NDA_PROMPT_VERSION }).toEqual({
-    SPEC_PROMPT_VERSION: "spec-v2",
+    SPEC_PROMPT_VERSION: "spec-v3",
     NDA_PROMPT_VERSION: "nda-v2",
   });
 });
