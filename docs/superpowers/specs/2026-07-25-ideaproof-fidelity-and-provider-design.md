@@ -286,7 +286,7 @@ The supplied mockup documents define the primary visible order.
 
 ### Technical Specification
 
-Maximum length: 1,200 words.
+Maximum length: 1,000 words.
 
 1. Product Overview
 2. Core Features
@@ -340,9 +340,10 @@ Flow:
    saved versions.
 4. **Approve exact PDFs** — Choose the exact revisions. IdeaProof creates the
    final PDFs and locks the approval.
-5. **Timestamp and verify** — Your PDFs stay on your machine. IdeaProof creates
-   an OpenTimestamps proof for each approved PDF, so anyone with the PDF and
-   its proof can later verify that the document has not changed.
+5. **Timestamp and verify** — IdeaProof creates a digital fingerprint of each
+   approved PDF and timestamps it with OpenTimestamps. Your PDFs stay on your
+   machine, and anyone with the PDF and its proof can later verify that the
+   document has not changed.
 
 Visible copy on this page uses `OpenTimestamps` and omits Bitcoin terminology.
 The explanation should be calm and direct, without implying that documents are
@@ -389,9 +390,9 @@ SQLite database, manifest, and ZIP package are not directly timestamped.
 The product UI summarizes this as:
 
 ```text
-Your PDFs stay on your machine. IdeaProof creates an OpenTimestamps proof for
-each approved PDF, so anyone with the PDF and its proof can later verify that
-the document has not changed.
+IdeaProof creates a digital fingerprint of each approved PDF and timestamps it
+with OpenTimestamps. Your PDFs stay on your machine, and anyone with the PDF
+and its proof can later verify that the document has not changed.
 ```
 
 ## Error Handling and Setup
