@@ -174,6 +174,12 @@ Render these fields in order:
 The optional NDA help states that Party A, Party B, Effective Date, and
 Confidentiality Period remain blank unless the user supplies them.
 
+The primary form action is exactly:
+
+```text
+Generate technical specification and sample NDA
+```
+
 ## One Model Per Project
 
 Each project has one immutable AI provider and model selection. That selection
@@ -334,9 +340,9 @@ Flow:
    saved versions.
 4. **Approve exact PDFs** — Choose the exact revisions. IdeaProof creates the
    final PDFs and locks the approval.
-5. **Timestamp and verify** — OpenTimestamps receives an opaque commitment, not
-   the PDF contents. IdeaProof saves a matching `.ots` proof for each approved
-   PDF so anyone can verify the exact file later.
+5. **Timestamp and verify** — Your PDFs stay on your machine. IdeaProof creates
+   an OpenTimestamps proof for each approved PDF, so anyone with the PDF and
+   its proof can later verify that the document has not changed.
 
 Visible copy on this page uses `OpenTimestamps` and omits Bitcoin terminology.
 The explanation should be calm and direct, without implying that documents are
@@ -383,8 +389,9 @@ SQLite database, manifest, and ZIP package are not directly timestamped.
 The product UI summarizes this as:
 
 ```text
-IdeaProof timestamps the exact approved PDFs. OpenTimestamps receives an
-opaque fingerprint, not your document.
+Your PDFs stay on your machine. IdeaProof creates an OpenTimestamps proof for
+each approved PDF, so anyone with the PDF and its proof can later verify that
+the document has not changed.
 ```
 
 ## Error Handling and Setup
@@ -449,7 +456,8 @@ Update README, `.env.example`, Setup, Terms, and third-party notices to explain:
 - what content is sent to the selected provider;
 - what stays local;
 - exactly which PDFs receive OpenTimestamps proofs;
-- OpenTimestamps receives an opaque commitment, not PDF contents;
+- the approved PDFs stay local while OpenTimestamps creates verification
+  proofs for them;
 - timestamps do not prove ownership or legal validity.
 
 ## Out of Scope
