@@ -36,10 +36,12 @@ export default function TermsPage() {
       <section>
         <h2>What timestamps prove</h2>
         <p>
-          A confirmed OpenTimestamps proof shows that the digital fingerprint
-          of an exact PDF existed by a certain time. Timestamps do not prove
-          ownership or legal validity. Changing a PDF means it will no longer
-          match its existing proof.
+          A confirmed OpenTimestamps proof shows that an exact approved PDF
+          existed by a certain time. The technical-specification PDF includes
+          its prepared-and-claimed-by declaration. The timestamp does not
+          independently verify the declarant’s identity or resolve competing
+          ownership claims. Changing the PDF means it will no longer match its
+          existing proof.
         </p>
       </section>
       <section>

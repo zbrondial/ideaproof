@@ -85,10 +85,15 @@ it("uses plain approval and proof actions", () => {
       projectId="project-id"
       specificationRevisionId="spec-id"
       ndaRevisionId="nda-id"
+      requiresOwnershipConfirmation
     />,
   );
   expect(approval).toContain("Approve and create proof");
   expect(approval).toContain("Keep reviewing");
+  expect(approval).toContain(
+    "I confirm that I prepared and claim ownership of this documented idea.",
+  );
+  expect(approval).toContain("disabled");
 
   const proof = renderToStaticMarkup(
     <ProofStatus
@@ -115,5 +120,13 @@ it("explains verification and important limits in plain language", () => {
   expect(terms).toContain("sample NDA");
   expect(terms).toContain("not legal advice");
   expect(terms).toContain("without application-level encryption");
-  expect(terms).toContain("do not prove ownership or legal validity");
+  expect(terms).toContain(
+    "A confirmed OpenTimestamps proof shows that an exact approved PDF existed by a certain time.",
+  );
+  expect(terms).toContain(
+    "The technical-specification PDF includes its prepared-and-claimed-by declaration.",
+  );
+  expect(terms).toContain(
+    "The timestamp does not independently verify the declarant’s identity or resolve competing ownership claims.",
+  );
 });

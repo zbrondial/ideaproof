@@ -19,9 +19,12 @@ afterEach(() => {
   }
 });
 
-function reviewProject(store: ReturnType<typeof openTestStore>) {
+function reviewProject(
+  store: ReturnType<typeof openTestStore>,
+  ownerName = "Private Owner Sentinel",
+) {
   const project = store.createProject({
-    ownerName: "Private Owner Sentinel",
+    ownerName,
     idea: "A local app that makes concise idea documents and timestamp proofs",
     ndaPurpose: "Discuss a possible product collaboration",
     provider: "openai",
@@ -63,6 +66,20 @@ it("approves exact revisions and writes an immutable proof package", async () =>
   temporaryDirectories.push(dataDir);
   try {
     const { project, specification, nda } = reviewProject(store);
+    const missingConfirmation = await handleApprove({
+      projectId: project.id,
+      body: {
+        specificationRevisionId: specification.id,
+        ndaRevisionId: nda.id,
+      },
+      store,
+      dataDir,
+    });
+    expect(missingConfirmation.status).toBe(400);
+    expect(await missingConfirmation.json()).toMatchObject({
+      code: "OWNERSHIP_CONFIRMATION_REQUIRED",
+    });
+
     const rendered: Array<Parameters<typeof renderDocumentPdf>[0]> = [];
     const renderPdf: typeof renderDocumentPdf = async (input) => {
       rendered.push(input);
@@ -73,6 +90,7 @@ it("approves exact revisions and writes an immutable proof package", async () =>
       body: {
         specificationRevisionId: specification.id,
         ndaRevisionId: nda.id,
+        ownershipConfirmed: true,
       },
       store,
       dataDir,
@@ -168,6 +186,32 @@ it("approves exact revisions and writes an immutable proof package", async () =>
   }
 });
 
+it("allows a legacy project without an owner name to be approved", async () => {
+  const store = openTestStore();
+  const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
+  temporaryDirectories.push(dataDir);
+  try {
+    const { project, specification, nda } = reviewProject(store, "");
+    const response = await handleApprove({
+      projectId: project.id,
+      body: {
+        specificationRevisionId: specification.id,
+        ndaRevisionId: nda.id,
+      },
+      store,
+      dataDir,
+      stamp: async (pdfPath) => {
+        writeFileSync(`${pdfPath}.ots`, "proof fixture");
+        return { status: "pending", otsPath: `${pdfPath}.ots` };
+      },
+    });
+
+    expect(response.status).toBe(201);
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
 it("retains rendered artifacts and records a retryable timestamp failure", async () => {
   const store = openTestStore();
   const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
@@ -179,6 +223,7 @@ it("retains rendered artifacts and records a retryable timestamp failure", async
       body: {
         specificationRevisionId: specification.id,
         ndaRevisionId: nda.id,
+        ownershipConfirmed: true,
       },
       store,
       dataDir,

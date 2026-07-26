@@ -80,6 +80,11 @@ export default async function ApprovePage({
           <small>{nda.wordCount} words</small>
         </article>
       </div>
+      {project.ownerName ? (
+        <p className="owner-claim-summary">
+          <strong>Prepared and claimed by:</strong> {project.ownerName}
+        </p>
+      ) : null}
       <div className="notice-card">
         <h2>Before you approve</h2>
         <p>
@@ -92,6 +97,7 @@ export default async function ApprovePage({
         projectId={id}
         specificationRevisionId={specification.id}
         ndaRevisionId={nda.id}
+        requiresOwnershipConfirmation={Boolean(project.ownerName)}
       />
     </div>
   );

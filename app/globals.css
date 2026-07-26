@@ -242,6 +242,32 @@ a {
   margin-top: 24px;
 }
 
+.owner-claim-summary {
+  margin: 14px 0 0;
+  color: var(--muted);
+}
+
+.ownership-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 58ch;
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+.ownership-confirmation input {
+  width: 16px;
+  height: 16px;
+  margin: 3px 0 0;
+  accent-color: var(--accent);
+}
+
+.ownership-confirmation input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 .approval-buttons {
   display: flex;
   flex-wrap: wrap;

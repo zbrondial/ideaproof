@@ -31,6 +31,7 @@ const approvalInput = z
   .object({
     specificationRevisionId: z.uuid(),
     ndaRevisionId: z.uuid(),
+    ownershipConfirmed: z.boolean().optional(),
   })
   .strict();
 
@@ -239,6 +240,13 @@ export async function handleApprove({
       return NextResponse.json(
         { status: "pending", proofUrl: `/projects/${projectId}/proof` },
         { status: 201 },
+      );
+    }
+    if (project.ownerName && input.ownershipConfirmed !== true) {
+      throw new AppError(
+        "OWNERSHIP_CONFIRMATION_REQUIRED",
+        "Confirm the prepared-and-claimed-by declaration before approval.",
+        400,
       );
     }
     if (project.status !== "review") {
