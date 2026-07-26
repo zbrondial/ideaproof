@@ -1,2 +1,10 @@
 .DS_Store
 .worktrees/
+.env
+.next/
+*.tsbuildinfo
+.venv/
+data/
+node_modules/
+playwright-report/
+test-results/

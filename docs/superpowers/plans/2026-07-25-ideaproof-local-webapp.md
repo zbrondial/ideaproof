@@ -6,7 +6,7 @@
 
 **Architecture:** One Next.js App Router process serves the browser UI and server routes on `127.0.0.1:3000`. Server-only modules use Node's built-in SQLite API, the OpenAI Responses API, deterministic PDF rendering, and a project-local Python `ots` executable; Docker Compose is optional and never required by the application or test suite.
 
-**Tech Stack:** Node.js 24.14+, Next.js 16.2.11, React 19.2.8, strict TypeScript, `node:sqlite`, OpenAI SDK 6.49.0, Zod 4.4.3, `pdf-lib` 1.17.1, `@pdf-lib/fontkit` 1.1.1, `fflate` 0.8.3, `react-markdown` 10.1.0, Vitest 4.1.10, Playwright 1.62.0, Python 3.9+, and `opentimestamps-client==0.7.2`.
+**Tech Stack:** Node.js 24.14+, Next.js 16.2.11, React 19.2.8, strict TypeScript 6.0.3, `node:sqlite`, OpenAI SDK 6.49.0, Zod 4.4.3, `pdf-lib` 1.17.1, `@pdf-lib/fontkit` 1.1.1, `fflate` 0.8.3, `react-markdown` 10.1.0, Vitest 4.1.10, Playwright 1.62.0, Python 3.9+, and `opentimestamps-client==0.7.2`.
 
 ## Global Constraints
 
@@ -238,7 +238,7 @@ Create `package.json` with exact runtime scripts and versions:
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "16.2.11",
-    "typescript": "7.0.2",
+    "typescript": "6.0.3",
     "vitest": "4.1.10"
   }
 }
