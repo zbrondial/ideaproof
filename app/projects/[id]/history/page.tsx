@@ -12,7 +12,9 @@ export default async function HistoryPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = getProjectStore().getProject(id);
+  const store = getProjectStore();
+  const project = store.getProject(id);
+  const ideaVersions = [...store.getIdeaVersions(id)].reverse();
   const revisions = [...project.revisions].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
   );
@@ -21,10 +23,10 @@ export default async function HistoryPage({
     <div className="content-shell">
       <div className="page-heading heading-row">
         <div>
-          <h1>Revision history</h1>
+          <h1>Project history</h1>
           <p>
-            {project.title}. Every accepted generation remains available for
-            inspection.
+            {project.title}. Idea updates and generated documents remain
+            available for inspection.
           </p>
           <p className="model-metadata">
             {project.provider === "openai" ? "OpenAI" : "Claude"} ·{" "}
@@ -35,7 +37,34 @@ export default async function HistoryPage({
           Back to review
         </Link>
       </div>
-      <div className="history-list">
+      <section className="history-section idea-history">
+        <h2>Idea history</h2>
+        <p className="field-help">
+          These are local history dates, not OpenTimestamps proofs.
+        </p>
+        <div className="history-list">
+          {ideaVersions.map((version) => (
+            <details key={version.id}>
+              <summary>
+                <span>
+                  {version.version === 1 ? "Idea created" : "Idea updated"}
+                </span>
+                <time dateTime={version.createdAt}>
+                  {new Date(version.createdAt).toLocaleString()}
+                </time>
+              </summary>
+              <h3>{version.ideaName}</h3>
+              <p>{version.idea}</p>
+              {version.updateNote ? (
+                <p>Update note: {version.updateNote}</p>
+              ) : null}
+            </details>
+          ))}
+        </div>
+      </section>
+      <section className="history-section">
+        <h2>Document history</h2>
+        <div className="history-list">
         {revisions.map((revision) => (
           <details key={revision.id}>
             <summary>
@@ -78,7 +107,8 @@ export default async function HistoryPage({
             />
           </details>
         ))}
-      </div>
+        </div>
+      </section>
     </div>
   );
 }

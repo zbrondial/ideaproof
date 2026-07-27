@@ -274,6 +274,16 @@ export async function handleApprove({
         409,
       );
     }
+    if (
+      specification.ideaVersionId !== project.currentIdeaVersionId ||
+      nda.ideaVersionId !== project.currentIdeaVersionId
+    ) {
+      throw new AppError(
+        "DOCUMENTS_OUTDATED",
+        "Regenerate both documents from the latest idea update before approval.",
+        409,
+      );
+    }
     if (specification.wordCount > 1_000 || nda.wordCount > 700) {
       throw new AppError(
         "DOCUMENT_TOO_LONG",

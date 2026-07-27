@@ -27,10 +27,14 @@ export function GenerationProgress({
   projectId,
   provider,
   model,
+  autoStart = true,
+  onComplete = "review",
 }: {
   projectId: string;
   provider: AiProvider;
   model: string;
+  autoStart?: boolean;
+  onComplete?: "review" | "refresh";
 }) {
   const router = useRouter();
   const started = useRef(false);
@@ -67,14 +71,19 @@ export function GenerationProgress({
     if (!(await generate("nda"))) return;
     setStep("saving");
     setStep("complete");
-    router.replace(`/projects/${projectId}/review`);
-  }, [generate, projectId, router]);
+    if (onComplete === "refresh") {
+      router.refresh();
+    } else {
+      router.replace(`/projects/${projectId}/review`);
+    }
+  }, [generate, onComplete, projectId, router]);
 
   useEffect(() => {
+    if (!autoStart) return;
     if (started.current) return;
     started.current = true;
     void run();
-  }, [run]);
+  }, [autoStart, run]);
 
   return (
     <section className="generation-panel" aria-live="polite">
@@ -102,6 +111,11 @@ export function GenerationProgress({
           Saving document revisions
         </li>
       </ol>
+      {!autoStart && step === "preparing" ? (
+        <button className="button" type="button" onClick={() => void run()}>
+          Regenerate both documents · 2 AI requests
+        </button>
+      ) : null}
       {failedDocument ? (
         <button
           className="button"

@@ -6,8 +6,11 @@ import TermsPage from "@/app/terms/page";
 import VerifyPage from "@/app/verify/page";
 import { ApprovalButton } from "@/components/approval-button";
 import { AppNav } from "@/components/app-nav";
+import { GenerationProgress } from "@/components/generation-progress";
+import { IdeaEditor } from "@/components/idea-editor";
 import { ProofStatus } from "@/components/proof-status";
 import { ProjectForm } from "@/components/project-form";
+import { ReviewWorkspace } from "@/components/review-workspace";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -123,6 +126,81 @@ it("uses plain approval and proof actions", () => {
   expect(proof).toContain("Download proof package");
   expect(proof).not.toContain('href="/verify"');
   expect(proof).not.toContain(">Verify proof</");
+});
+
+it("offers local idea editing before approval", () => {
+  const html = renderToStaticMarkup(
+    <IdeaEditor
+      projectId="project-id"
+      ideaName="IdeaProof"
+      idea="A local app that timestamps concise idea documents."
+    />,
+  );
+
+  expect(html).toContain("Edit idea details");
+  expect(html).toContain('<label for="editIdeaName">Idea name</label>');
+  expect(html).toContain('<label for="editIdea">Raw software idea</label>');
+  expect(html).toContain("Update note");
+  expect(html).toContain("Optional");
+  expect(html).toContain("Save idea update");
+});
+
+it("requires regeneration when selected documents use an older idea", () => {
+  const revisions = (["specification", "nda"] as const).map(
+    (documentType, index) => ({
+      id: `${documentType}-id`,
+      projectId: "project-id",
+      ideaVersionId: "idea-v1",
+      documentType,
+      version: 1,
+      content: "# Document",
+      wordCount: 1,
+      feedback: null,
+      promptTemplateVersion:
+        documentType === "specification" ? "spec-v5" : "nda-v5",
+      provider: "openai" as const,
+      model: "gpt-5.6",
+      providerResponseId: `resp-${index}`,
+      createdAt: "2026-07-27T00:00:00.000Z",
+    }),
+  );
+  const stale = renderToStaticMarkup(
+    <ReviewWorkspace
+      projectId="project-id"
+      revisions={revisions}
+      initialSpecificationId="specification-id"
+      initialNdaId="nda-id"
+      currentIdeaVersionId="idea-v2"
+    />,
+  );
+  expect(stale).toContain(
+    "Your idea changed after these documents were generated.",
+  );
+  expect(stale).not.toContain("Approve selected revisions");
+
+  const current = renderToStaticMarkup(
+    <ReviewWorkspace
+      projectId="project-id"
+      revisions={revisions}
+      initialSpecificationId="specification-id"
+      initialNdaId="nda-id"
+      currentIdeaVersionId="idea-v1"
+    />,
+  );
+  expect(current).toContain("Approve selected revisions");
+
+  const regeneration = renderToStaticMarkup(
+    <GenerationProgress
+      projectId="project-id"
+      provider="openai"
+      model="gpt-5.6"
+      autoStart={false}
+      onComplete="refresh"
+    />,
+  );
+  expect(regeneration).toContain(
+    "Regenerate both documents · 2 AI requests",
+  );
 });
 
 it("explains verification and important limits in plain language", () => {

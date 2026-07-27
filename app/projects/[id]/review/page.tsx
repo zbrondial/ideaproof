@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+import { IdeaEditor } from "@/components/idea-editor";
+import { GenerationProgress } from "@/components/generation-progress";
 import { ReviewWorkspace } from "@/components/review-workspace";
 import { getProjectStore } from "@/server/db/projects";
 import { withOwnerDeclaration } from "@/server/documents/attribution";
@@ -12,7 +14,8 @@ export default async function ReviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = getProjectStore().getProject(id);
+  const store = getProjectStore();
+  const project = store.getProject(id);
   if (project.approval) {
     redirect(`/projects/${id}/proof`);
   }
@@ -34,6 +37,7 @@ export default async function ReviewPage({
         }
       : revision,
   );
+  const documentsAreCurrent = store.selectedDocumentsUseCurrentIdea(project.id);
 
   if (!specification || !nda) {
     return (
@@ -57,13 +61,29 @@ export default async function ReviewPage({
             {project.model}
           </p>
         </div>
-        <a href={`/projects/${project.id}/history`}>Revision history</a>
+        <a href={`/projects/${project.id}/history`}>Project history</a>
       </header>
+      <IdeaEditor
+        projectId={project.id}
+        ideaName={project.title}
+        idea={project.idea}
+      />
+      {!documentsAreCurrent ? (
+        <GenerationProgress
+          projectId={project.id}
+          provider={project.provider}
+          model={project.model}
+          autoStart={false}
+          onComplete="refresh"
+        />
+      ) : null}
       <ReviewWorkspace
+        key={`${project.currentIdeaVersionId}:${documentsAreCurrent}`}
         projectId={id}
         revisions={displayedRevisions}
         initialSpecificationId={specification.id}
         initialNdaId={nda.id}
+        currentIdeaVersionId={project.currentIdeaVersionId}
       />
     </div>
   );

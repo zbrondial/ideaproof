@@ -39,12 +39,56 @@ for (const provider of [
     .click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/review$/);
 
+  await page.getByText("Edit idea details", { exact: true }).click();
+  await page.getByLabel("Idea name").fill("IdeaProof Next");
+  await page
+    .getByLabel("Raw software idea")
+    .fill(
+      "A local web app for indie developers that creates concise idea documents, preserves idea updates, and timestamps approved PDFs.",
+    );
+  await page
+    .getByLabel("Update note")
+    .fill("Expanded the workflow and audience.");
+  await page.getByRole("button", { name: "Save idea update" }).click();
+  await expect(
+    page.getByText(
+      "Idea update saved locally. Regenerate both documents before approval.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Project history" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Project history" }),
+  ).toBeVisible();
+  await expect(page.getByText("Idea created", { exact: true })).toBeVisible();
+  await expect(page.getByText("Idea updated", { exact: true })).toBeVisible();
+  await expect(page.locator(".idea-history time")).toHaveCount(2);
+  await page.getByText("Idea updated", { exact: true }).click();
+  await expect(
+    page.getByText("Expanded the workflow and audience."),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Back to review" }).click();
+
+  await expect(
+    page.getByText("Your idea changed after these documents were generated."),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Approve selected revisions" }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", {
+      name: "Regenerate both documents · 2 AI requests",
+    })
+    .click();
+  await expect(
+    page.getByRole("link", { name: "Approve selected revisions" }),
+  ).toBeVisible();
+
   await page.getByRole("tab", { name: "Sample NDA" }).click();
   await page.getByLabel("Request changes").fill("Use shorter sentences.");
   await page
     .getByRole("button", { name: "Generate updated version" })
     .click();
-  await expect(page.locator("select option:checked")).toHaveText(/Version 2/);
+  await expect(page.locator("select option:checked")).toHaveText(/Version 3/);
   const versionOneId = await page
     .locator("select option")
     .filter({ hasText: "Version 1" })
@@ -52,10 +96,16 @@ for (const provider of [
   expect(versionOneId).toBeTruthy();
   await page.locator("select").selectOption(versionOneId!);
   await expect(page.locator("select option:checked")).toHaveText(/Version 1/);
+  const versionThreeId = await page
+    .locator("select option")
+    .filter({ hasText: "Version 3" })
+    .getAttribute("value");
+  expect(versionThreeId).toBeTruthy();
+  await page.locator("select").selectOption(versionThreeId!);
 
   await page.getByRole("link", { name: "Approve selected revisions" }).click();
   await expect(
-    page.getByText("Sample NDA").locator("..").getByText("Version 1"),
+    page.getByText("Sample NDA").locator("..").getByText("Version 3"),
   ).toBeVisible();
   await expect(
     page.getByText("Prepared and claimed by:").locator(".."),
@@ -152,8 +202,8 @@ for (const provider of [
     manifest.documents.find(
       (document: { type: string }) => document.type === "nda",
     ).revisionId,
-  ).toBe(versionOneId);
-  expect(strFromU8(archive["sample-nda.md"])).not.toContain(
+  ).toBe(versionThreeId);
+  expect(strFromU8(archive["sample-nda.md"])).toContain(
     "Revision two uses shorter sentences.",
   );
   const approvedSpecification = strFromU8(
