@@ -58,6 +58,8 @@ it("renders the approved digital-fingerprint explanation", async () => {
   const html = renderToStaticMarkup(<HowItWorksPage />);
 
   expect(html).toContain("digital fingerprint of each approved PDF");
+  expect(html).toContain("Your idea is stored locally.");
+  expect(html).not.toContain("Your project is stored locally.");
   expect(html).toContain("Your PDFs stay on your machine");
   expect(html).toContain("Timestamp an idea");
   expect(html).not.toMatch(/\bprotect\b/i);
