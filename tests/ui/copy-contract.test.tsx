@@ -41,6 +41,13 @@ it("renders the canonical homepage and navigation copy in order", () => {
   expect(html).not.toMatch(/>Home</);
 });
 
+it("keeps the timestamp action out of the primary navigation", () => {
+  const html = renderToStaticMarkup(<AppNav />);
+
+  expect(html).not.toContain("Timestamp an idea");
+  expect(html).not.toContain('href="/projects/new"');
+});
+
 it("renders the approved digital-fingerprint explanation", async () => {
   const { default: HowItWorksPage } = await import(
     "@/app/how-it-works/page"

@@ -45,13 +45,6 @@ export function AppNav() {
           <Link href="/terms" onClick={() => setOpen(false)}>
             Terms
           </Link>
-          <Link
-            className="button button-small"
-            href="/projects/new"
-            onClick={() => setOpen(false)}
-          >
-            Timestamp an idea
-          </Link>
         </div>
       </nav>
     </header>
