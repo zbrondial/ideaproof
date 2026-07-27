@@ -26,7 +26,7 @@ export function ProofStatus({
       "Checking whether OpenTimestamps has confirmed the digital fingerprints of both PDFs…",
     );
     try {
-      const response = await fetch(`/api/projects/${projectId}/proof/check`, {
+      const response = await fetch(`/api/ideas/${projectId}/proof/check`, {
         method: "POST",
       });
       const body = await response.json();
@@ -52,7 +52,7 @@ export function ProofStatus({
   async function retry() {
     setChecking(true);
     setMessage("");
-    const response = await fetch(`/api/projects/${projectId}/approve`, {
+    const response = await fetch(`/api/ideas/${projectId}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ specificationRevisionId, ndaRevisionId }),
@@ -93,7 +93,7 @@ export function ProofStatus({
       {initialStatus !== "failed" ? (
         <a
           className="button button-secondary"
-          href={`/api/projects/${projectId}/package`}
+          href={`/api/ideas/${projectId}/package`}
         >
           Download proof package
         </a>

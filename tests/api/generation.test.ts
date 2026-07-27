@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 
 import { AppError } from "@/server/errors";
-import { handleGenerate } from "@/app/api/projects/[id]/generate/[documentType]/route";
+import { handleGenerate } from "@/app/api/ideas/[id]/generate/[documentType]/route";
 
 import {
   createGenerationHarness,

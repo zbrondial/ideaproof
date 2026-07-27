@@ -51,7 +51,7 @@ export function GenerationProgress({
         : "generating-nda",
     );
     const response = await fetch(
-      `/api/projects/${projectId}/generate/${documentType}`,
+      `/api/ideas/${projectId}/generate/${documentType}`,
       { method: "POST" },
     );
     if (!response.ok) {

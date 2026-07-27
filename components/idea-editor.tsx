@@ -22,7 +22,7 @@ export function IdeaEditor({
     setMessage("");
     const form = new FormData(event.currentTarget);
     try {
-      const response = await fetch(`/api/projects/${projectId}/idea`, {
+      const response = await fetch(`/api/ideas/${projectId}/idea`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

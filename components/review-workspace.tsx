@@ -49,7 +49,7 @@ export function ReviewWorkspace({
     event.preventDefault();
     setSubmitting(true);
     setError("");
-    const response = await fetch(`/api/projects/${projectId}/revisions`, {
+    const response = await fetch(`/api/ideas/${projectId}/revisions`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

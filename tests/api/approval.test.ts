@@ -5,7 +5,7 @@ import { isAbsolute, join } from "node:path";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, expect, it } from "vitest";
 
-import { handleApprove } from "@/app/api/projects/[id]/approve/route";
+import { handleApprove } from "@/app/api/ideas/[id]/approve/route";
 import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
 

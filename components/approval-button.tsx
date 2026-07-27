@@ -23,7 +23,7 @@ export function ApprovalButton({
   async function approve() {
     setSubmitting(true);
     setError("");
-    const response = await fetch(`/api/projects/${projectId}/approve`, {
+    const response = await fetch(`/api/ideas/${projectId}/approve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

@@ -4,8 +4,8 @@ import { join } from "node:path";
 
 import { afterEach, expect, it, vi } from "vitest";
 
-import { handlePackage } from "@/app/api/projects/[id]/package/route";
-import { handleProofCheck } from "@/app/api/projects/[id]/proof/check/route";
+import { handlePackage } from "@/app/api/ideas/[id]/package/route";
+import { handleProofCheck } from "@/app/api/ideas/[id]/proof/check/route";
 
 import { openTestStore } from "../helpers/open-test-store";
 

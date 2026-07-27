@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
-import { handleGenerate } from "@/app/api/projects/[id]/generate/[documentType]/route";
-import { handleRevision } from "@/app/api/projects/[id]/revisions/route";
+import { handleGenerate } from "@/app/api/ideas/[id]/generate/[documentType]/route";
+import { handleRevision } from "@/app/api/ideas/[id]/revisions/route";
 import type { DocumentType } from "@/server/db/projects";
 
 import { openTestStore } from "../helpers/open-test-store";

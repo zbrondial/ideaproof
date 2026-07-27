@@ -3,7 +3,7 @@ import { expect, it } from "vitest";
 import {
   handleIdeaUpdate,
   POST,
-} from "@/app/api/projects/[id]/idea/route";
+} from "@/app/api/ideas/[id]/idea/route";
 
 import { openTestStore } from "../helpers/open-test-store";
 
@@ -62,7 +62,7 @@ it("rejects invalid idea updates", async () => {
 
 it("returns a safe validation error for malformed JSON", async () => {
   const response = await POST(
-    new Request("http://127.0.0.1/api/projects/project-id/idea", {
+    new Request("http://127.0.0.1/api/ideas/project-id/idea", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: "{",

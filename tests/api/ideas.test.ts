@@ -5,8 +5,8 @@ import { beforeAll, beforeEach, expect, it } from "vitest";
 
 import { jsonRequest } from "../helpers/http";
 
-let POST: typeof import("@/app/api/projects/route").POST;
-let GET: typeof import("@/app/api/projects/route").GET;
+let POST: typeof import("@/app/api/ideas/route").POST;
+let GET: typeof import("@/app/api/ideas/route").GET;
 
 const validProjectInput = {
   ideaName: "IdeaProof",
@@ -21,7 +21,7 @@ beforeAll(async () => {
   process.env.IDEAPROOF_DATA_DIR = mkdtempSync(
     join(tmpdir(), "ideaproof-api-test-"),
   );
-  ({ POST, GET } = await import("@/app/api/projects/route"));
+  ({ POST, GET } = await import("@/app/api/ideas/route"));
 });
 
 beforeEach(() => {
@@ -104,7 +104,7 @@ it.each([
 
 it("lists matching projects through safe summaries", async () => {
   const response = await GET(
-    new Request("http://127.0.0.1:3000/api/projects?search=timestamps"),
+    new Request("http://127.0.0.1:3000/api/ideas?search=timestamps"),
   );
   const body = await response.json();
 

@@ -25,7 +25,7 @@ export function ProjectForm({
     );
 
     try {
-      const response = await fetch("/api/projects", {
+      const response = await fetch("/api/ideas", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
