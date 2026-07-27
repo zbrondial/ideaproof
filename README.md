@@ -119,7 +119,8 @@ project title and supplies it to the selected AI provider with the idea.
 
 The generated technical specification is limited to 1,000 words. The sample
 NDA is limited to 700 words and deliberately leaves Party A, Party B, Effective
-Date, and Confidentiality Period blank unless you provide those facts.
+Date, and Confidentiality Period blank unless you provide those facts. Each
+missing value appears once as a labeled blank line in the generated document.
 
 ## Idea updates and document regeneration
 
@@ -150,10 +151,28 @@ The end-to-end suite exercises both provider choices with development-only
 deterministic fixtures. It does not call OpenAI, Anthropic, or public timestamp
 calendars.
 
+### Local API
+
+Browser pages remain under `/projects`. The JSON and file API uses the
+idea-focused `/api/ideas` namespace:
+
+- `GET /api/ideas`
+- `POST /api/ideas`
+- `POST /api/ideas/:id/generate/:documentType`
+- `POST /api/ideas/:id/revisions`
+- `POST /api/ideas/:id/idea`
+- `POST /api/ideas/:id/approve`
+- `POST /api/ideas/:id/proof/check`
+- `GET /api/ideas/:id/package`
+
+The earlier `/api/projects` namespace is not supported.
+
 ## Local data and backups
 
 By default, IdeaProof stores its SQLite database and approval artifacts under
-`data/`. Change `IDEAPROOF_DATA_DIR` to use another local folder.
+`data/`. Your idea, saved idea versions, generated documents, approval
+artifacts, and proof records stay in that local data directory. Change
+`IDEAPROOF_DATA_DIR` to use another local folder.
 
 To back up your work, stop IdeaProof and copy the entire data directory.
 Application-level encryption is not provided, so use your operating system's
@@ -182,9 +201,19 @@ manifest excludes intake text, revision feedback, API keys, database files, and
 internal paths.
 
 OpenTimestamps confirmation can take hours. Use **Check confirmation** on the
-proof page later. To verify independently in IdeaProof, open **Verify proof** and
-select a PDF together with its matching `.ots` file. Any change to the PDF
-causes a mismatch.
+proof page later. Timestamp retries reuse an existing matching `.ots` file
+instead of trying to overwrite it.
+
+The project-local Python OpenTimestamps client can create and upgrade proofs
+through public calendars without Bitcoin Core. Its full independent
+verification step requires access to a local Bitcoin Core node; a pruned node
+is sufficient. When Bitcoin Core is unavailable, IdeaProof keeps an upgraded
+proof pending instead of incorrectly marking it failed. You can also verify a
+PDF and proof with the [OpenTimestamps browser
+verifier](https://opentimestamps.org/).
+
+To verify through IdeaProof, open **Verify proof** and select a PDF together
+with its matching `.ots` file. Any change to the PDF causes a mismatch.
 
 ## Optional Docker Compose
 
@@ -227,7 +256,16 @@ reported without logging the key or raw response.
 ### Proof remains pending
 
 This can be normal while OpenTimestamps completes confirmation. Wait and use
-**Check confirmation** again. Do not edit the PDF or `.ots` file.
+**Check confirmation** again. If the proof has already been upgraded but no
+local Bitcoin Core node is available, IdeaProof deliberately leaves it pending;
+use the OpenTimestamps browser verifier or connect the client to Bitcoin Core
+for full independent verification. Do not edit the PDF or `.ots` file.
+
+### Timestamp retry says the calendar is unavailable
+
+Update to the latest IdeaProof version and restart the app. Current versions
+reuse an existing `.ots` proof during retry instead of treating the existing
+file as a calendar failure.
 
 ### Port 3000 is already in use
 
