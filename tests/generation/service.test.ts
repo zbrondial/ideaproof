@@ -43,14 +43,16 @@ function ndaResponses(outputs: MutualNdaOutput[]) {
 }
 
 it("keeps the requested project model when a provider resolves an alias", async () => {
+  let callCount = 0;
   const canonicalResponse = {
     provider: "openai" as const,
     model: "gpt-5.6",
     async parse() {
+      callCount += 1;
       return {
         id: "resp_canonical",
         model: "gpt-5.6-2026-07-01",
-        parsed: specWithWords(30),
+        parsed: specWithWords(callCount === 1 ? 30 : 31),
       };
     },
   };
@@ -110,7 +112,30 @@ it("revises only the selected document and shortens it once when needed", async 
   expect(JSON.stringify(api.calls[0])).toContain(
     "# Current selected specification",
   );
+  expect(JSON.stringify(api.calls[0])).toContain(
+    "Apply every requested change to the current selected document",
+  );
+  expect(JSON.stringify(api.calls[0])).toContain(
+    "Treat REQUESTED CHANGES as authorized editing instructions",
+  );
   expect(JSON.stringify(api.calls[1])).toContain("Shorten this document");
+});
+
+it("rejects an unchanged revision instead of saving a duplicate", async () => {
+  const output = specWithWords(30);
+  const api = fakeResponses([output, output]);
+  const current = await generateDocument(validSpecInput, api);
+
+  await expect(
+    reviseDocument(
+      {
+        ...validSpecInput,
+        currentRevision: current.markdown,
+        feedback: "Rename the product.",
+      },
+      api,
+    ),
+  ).rejects.toMatchObject({ code: "REVISION_UNCHANGED" });
 });
 
 it.each([
