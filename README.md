@@ -114,9 +114,26 @@ providers. OpenAI defaults to `gpt-5.6`; Anthropic defaults to
 `claude-opus-4-8`. You may change either model variable for future projects,
 but the named model must be available to your API account.
 
+Each project also requires a short **Idea name**. IdeaProof uses it as the
+project title and supplies it to the selected AI provider with the idea.
+
 The generated technical specification is limited to 1,000 words. The sample
 NDA is limited to 700 words and deliberately leaves Party A, Party B, Effective
 Date, and Confidentiality Period blank unless you provide those facts.
+
+## Idea updates and document regeneration
+
+Before approval, **Edit idea details** lets you change the Idea name or expand
+the raw idea. Every save appends a complete snapshot to **Project history**;
+older snapshots remain available with their local date and time. These local
+history dates are not OpenTimestamps proofs.
+
+Saving an idea update stays on your machine and makes no AI request. Because
+existing documents describe the earlier snapshot, IdeaProof then blocks
+approval until you choose **Regenerate both documents · 2 AI requests**.
+Normal regeneration makes one request for the technical specification and one
+for the sample NDA. A document may need one extra shortening request only when
+the first response exceeds its word limit.
 
 ## Development
 
