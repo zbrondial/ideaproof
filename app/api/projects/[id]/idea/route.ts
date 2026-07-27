@@ -59,9 +59,21 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      {
+        code: "PROJECT_IDEA_INVALID",
+        message: "Add an Idea name and at least 20 characters for the idea.",
+      },
+      { status: 400 },
+    );
+  }
   return handleIdeaUpdate({
     projectId: id,
-    body: await request.json(),
+    body,
     store: getProjectStore(),
   });
 }

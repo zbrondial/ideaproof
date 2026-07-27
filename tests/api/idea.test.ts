@@ -1,6 +1,9 @@
 import { expect, it } from "vitest";
 
-import { handleIdeaUpdate } from "@/app/api/projects/[id]/idea/route";
+import {
+  handleIdeaUpdate,
+  POST,
+} from "@/app/api/projects/[id]/idea/route";
 
 import { openTestStore } from "../helpers/open-test-store";
 
@@ -55,6 +58,22 @@ it("rejects invalid idea updates", async () => {
   } finally {
     store.closeAndRemove();
   }
+});
+
+it("returns a safe validation error for malformed JSON", async () => {
+  const response = await POST(
+    new Request("http://127.0.0.1/api/projects/project-id/idea", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: "{",
+    }),
+    { params: Promise.resolve({ id: "project-id" }) },
+  );
+
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({
+    code: "PROJECT_IDEA_INVALID",
+  });
 });
 
 it("rejects idea updates after approval", async () => {

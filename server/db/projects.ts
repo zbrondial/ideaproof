@@ -729,7 +729,7 @@ export function createProjectStore(filename: string) {
       }>;
     }): Approval {
       return inTransaction(database, () => {
-        getProjectRow(input.projectId);
+        const project = getProjectRow(input.projectId);
         const existing = database
           .prepare("SELECT id FROM approvals WHERE project_id = ?")
           .get(input.projectId);
@@ -752,6 +752,16 @@ export function createProjectStore(filename: string) {
           throw new AppError(
             "REVISION_PROJECT_MISMATCH",
             "Approval revisions must belong to the same project.",
+            409,
+          );
+        }
+        if (
+          specification.idea_version_id !== project.current_idea_version_id ||
+          nda.idea_version_id !== project.current_idea_version_id
+        ) {
+          throw new AppError(
+            "DOCUMENTS_OUTDATED",
+            "Regenerate both documents from the latest idea update before approval.",
             409,
           );
         }

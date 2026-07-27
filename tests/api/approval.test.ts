@@ -248,6 +248,46 @@ it("rejects approval when selected documents predate the latest idea", async () 
   }
 });
 
+it("rejects approval when the idea changes during PDF rendering", async () => {
+  const store = openTestStore();
+  const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
+  temporaryDirectories.push(dataDir);
+  try {
+    const { project, specification, nda } = reviewProject(store);
+    let ideaChanged = false;
+    const renderPdf: typeof renderDocumentPdf = async (input) => {
+      if (!ideaChanged) {
+        ideaChanged = true;
+        store.updateIdea(project.id, {
+          ideaName: "IdeaProof Next",
+          idea: "A more detailed local app for timestamping exact idea documents.",
+        });
+      }
+      return renderDocumentPdf(input);
+    };
+
+    const response = await handleApprove({
+      projectId: project.id,
+      body: {
+        specificationRevisionId: specification.id,
+        ndaRevisionId: nda.id,
+        ownershipConfirmed: true,
+      },
+      store,
+      dataDir,
+      renderPdf,
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "DOCUMENTS_OUTDATED",
+    });
+    expect(store.getProject(project.id).approval).toBeNull();
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
 it("retains rendered artifacts and records a retryable timestamp failure", async () => {
   const store = openTestStore();
   const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
