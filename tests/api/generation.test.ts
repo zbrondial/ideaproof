@@ -22,6 +22,7 @@ it("generates documents independently and retains a successful sibling", async (
       harness.store.getRevisions(harness.project.id, "specification"),
     ).toEqual([
       expect.objectContaining({
+        ideaVersionId: harness.project.currentIdeaVersionId,
         provider: "openai",
         providerResponseId: "resp_spec",
       }),
@@ -43,6 +44,9 @@ it("keeps the locally stored owner name out of generation provider input", async
     harness.mockGeneration.specification.mockResolvedValue(validGeneratedSpec);
 
     expect((await harness.generate("specification")).status).toBe(201);
+    expect(harness.mockGeneration.specification).toHaveBeenCalledWith(
+      expect.objectContaining({ ideaName: "IdeaProof" }),
+    );
     expect(
       JSON.stringify(harness.mockGeneration.specification.mock.calls),
     ).not.toContain("Private Owner Sentinel");

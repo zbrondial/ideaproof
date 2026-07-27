@@ -32,6 +32,7 @@ it("revises only the selected document and preserves history", async () => {
       expect.objectContaining({ version: 1, provider: "openai" }),
       expect.objectContaining({
         version: 2,
+        ideaVersionId: harness.project.currentIdeaVersionId,
         provider: "openai",
         providerResponseId: "resp_nda",
       }),

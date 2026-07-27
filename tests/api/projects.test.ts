@@ -9,6 +9,7 @@ let POST: typeof import("@/app/api/projects/route").POST;
 let GET: typeof import("@/app/api/projects/route").GET;
 
 const validProjectInput = {
+  ideaName: "IdeaProof",
   ownerName: "Ada Lovelace",
   idea: "A browser app that timestamps concise idea documents",
   technologyPreference: "",
@@ -39,6 +40,22 @@ it("requires idea and NDA purpose", async () => {
   });
 });
 
+it("requires an Idea name", async () => {
+  const response = await POST(
+    jsonRequest({
+      ...validProjectInput,
+      ideaName: "",
+      provider: "openai",
+      model: "gpt-5.6",
+    }),
+  );
+
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({
+    code: "PROJECT_INPUT_INVALID",
+  });
+});
+
 it("creates a local draft without legal-detail fields", async () => {
   const response = await POST(
     jsonRequest({
@@ -51,6 +68,7 @@ it("creates a local draft without legal-detail fields", async () => {
   expect(response.status).toBe(201);
   const project = await response.json();
   expect(project).toMatchObject({
+    title: "IdeaProof",
     ownerName: "Ada Lovelace",
     status: "draft",
   });

@@ -18,6 +18,7 @@ afterEach(() => {
 
 function pendingProject(store: ReturnType<typeof openTestStore>) {
   const project = store.createProject({
+    ideaName: "IdeaProof",
     idea: "A local app that verifies timestamped idea documents",
     ndaPurpose: "Discuss a possible collaboration",
     provider: "openai",
@@ -27,6 +28,7 @@ function pendingProject(store: ReturnType<typeof openTestStore>) {
   const add = (documentType: "specification" | "nda") =>
     store.addRevision({
       projectId: project.id,
+      ideaVersionId: project.currentIdeaVersionId,
       documentType,
       content: `# ${documentType}`,
       wordCount: 1,

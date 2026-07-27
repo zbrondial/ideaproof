@@ -22,6 +22,7 @@ import {
 
 type SpecificationInput = {
   documentType: "specification";
+  ideaName: string;
   idea: string;
   technologyPreference?: string;
   ndaPurpose?: string;
@@ -29,6 +30,7 @@ type SpecificationInput = {
 };
 type NdaInput = {
   documentType: "nda";
+  ideaName: string;
   idea: string;
   technologyPreference?: string;
   ndaPurpose: string;

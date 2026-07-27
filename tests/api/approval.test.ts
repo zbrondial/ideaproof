@@ -24,6 +24,7 @@ function reviewProject(
   ownerName = "Private Owner Sentinel",
 ) {
   const project = store.createProject({
+    ideaName: "IdeaProof",
     ownerName,
     idea: "A local app that makes concise idea documents and timestamp proofs",
     ndaPurpose: "Discuss a possible product collaboration",
@@ -33,6 +34,7 @@ function reviewProject(
   store.transitionProject(project.id, "draft", "generating");
   const specification = store.addRevision({
     projectId: project.id,
+    ideaVersionId: project.currentIdeaVersionId,
     documentType: "specification",
     content: "# Technical Specification\n\nA concise implementation.",
     wordCount: 5,
@@ -44,6 +46,7 @@ function reviewProject(
   });
   const nda = store.addRevision({
     projectId: project.id,
+    ideaVersionId: project.currentIdeaVersionId,
     documentType: "nda",
     content:
       "# Sample Non-Disclosure Agreement\n\nParty A: ______________________",

@@ -152,6 +152,7 @@ it.each([
     generateDocument(
       {
         documentType: "nda",
+        ideaName: "IdeaProof",
         idea: "A private collaboration tool.",
         ndaPurpose: "Evaluate a product collaboration.",
       },
@@ -170,6 +171,7 @@ it("validates the shortened NDA response", async () => {
     generateDocument(
       {
         documentType: "nda",
+        ideaName: "IdeaProof",
         idea: "A private collaboration tool.",
         ndaPurpose: "Evaluate a product collaboration.",
       },
@@ -186,6 +188,7 @@ it("validates revised NDA responses", async () => {
     reviseDocument(
       {
         documentType: "nda",
+        ideaName: "IdeaProof",
         idea: "A private collaboration tool.",
         ndaPurpose: "Evaluate a product collaboration.",
         currentRevision: "# Existing NDA",

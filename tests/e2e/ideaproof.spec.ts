@@ -22,6 +22,7 @@ for (const provider of [
   }, testInfo) => {
   await page.goto("/projects/new");
   await page.getByLabel(provider.label).check();
+  await page.getByLabel("Idea name").fill("IdeaProof");
   await page.getByLabel("Owner’s full name").fill("Ada Lovelace");
   await page
     .getByLabel("Raw software idea")

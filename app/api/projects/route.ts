@@ -19,6 +19,7 @@ const ownerNameSchema = z
 
 const projectInputSchema = z
   .object({
+    ideaName: z.string().trim().min(1).max(120),
     ownerName: ownerNameSchema,
     idea: z.string().trim().min(20).max(10_000),
     technologyPreference: z.string().trim().max(1_000).default(""),
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
         {
           code: "PROJECT_INPUT_INVALID",
           message:
-            "Add an owner name, idea, and NDA purpose within the stated limits.",
+            "Add an Idea name, owner name, idea, and NDA purpose within the stated limits.",
         },
         { status: 400 },
       );

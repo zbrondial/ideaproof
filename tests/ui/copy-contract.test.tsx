@@ -82,6 +82,8 @@ it("shows only configured models and defaults to OpenAI when both are available"
     "Generate technical specification and sample NDA",
   );
   expect(both).not.toMatch(/mutual NDA|Mutual Non-Disclosure Agreement/i);
+  expect(both).toContain('<label for="ideaName">Idea name</label>');
+  expect(both).toContain("Use a short working name.");
   expect(both).toContain('<label for="ownerName">Owner’s full name</label>');
   expect(both).toContain(
     "This name appears on the technical specification and becomes part of its timestamped PDF.",

@@ -14,10 +14,12 @@ import { e2eFixturesEnabled } from "@/server/runtime-mode";
 type ProjectStore = ReturnType<typeof getProjectStore>;
 type Generation = {
   specification(input: {
+    ideaName: string;
     idea: string;
     technologyPreference: string;
   }): Promise<GeneratedDocument>;
   nda(input: {
+    ideaName: string;
     idea: string;
     ndaPurpose: string;
     ndaDetails: string;
@@ -35,11 +37,13 @@ async function realGeneration(provider: "openai" | "anthropic", model: string) {
       );
   return {
     specification: (input: {
+      ideaName: string;
       idea: string;
       technologyPreference: string;
     }) =>
       generateDocument({ documentType: "specification", ...input }, port),
     nda: (input: {
+      ideaName: string;
       idea: string;
       ndaPurpose: string;
       ndaDetails: string;
@@ -104,16 +108,19 @@ export async function handleGenerate({
     const generated =
       documentType === "specification"
         ? await selectedGeneration.specification({
+            ideaName: project.title,
             idea: project.idea,
             technologyPreference: project.technologyPreference,
           })
         : await selectedGeneration.nda({
+            ideaName: project.title,
             idea: project.idea,
             ndaPurpose: project.ndaPurpose,
             ndaDetails: project.ndaDetails,
           });
     const revision = store.addRevision({
       projectId,
+      ideaVersionId: project.currentIdeaVersionId,
       documentType,
       content: generated.markdown,
       wordCount: generated.wordCount,

@@ -2,6 +2,7 @@ import type { TechnicalSpecificationOutput } from "@/server/generation/schemas";
 
 export const validSpecInput = {
   documentType: "specification" as const,
+  ideaName: "IdeaProof",
   idea: "A local web app that creates concise idea documents and timestamps approved PDFs.",
   technologyPreference: "Next.js and SQLite",
   ndaPurpose: "Discuss a possible product collaboration",

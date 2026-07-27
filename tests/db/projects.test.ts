@@ -10,6 +10,7 @@ import { createProjectStore } from "@/server/db/projects";
 import { openTestStore } from "../helpers/open-test-store";
 
 const projectInput = {
+  ideaName: "IdeaProof",
   ownerName: "Ada Lovelace",
   idea: "  A local proof tool for concise idea documents.  ",
   technologyPreference: "TypeScript",
@@ -19,16 +20,24 @@ const projectInput = {
   model: "gpt-5.6",
 };
 
-it("creates, lists, and loads a project with a normalized title", () => {
+it("creates, lists, and loads a project with its Idea name", () => {
   const store = openTestStore();
 
   try {
     const project = store.createProject(projectInput);
 
-    expect(project.title).toBe("A local proof tool for concise idea documents.");
+    expect(project.title).toBe("IdeaProof");
     expect(project.ownerName).toBe("Ada Lovelace");
     expect(project.idea).toBe(projectInput.idea);
     expect(project.status).toBe("draft");
+    expect(store.getIdeaVersions(project.id)).toEqual([
+      expect.objectContaining({
+        version: 1,
+        ideaName: "IdeaProof",
+        idea: projectInput.idea,
+        updateNote: null,
+      }),
+    ]);
     expect(store.listProjects({ search: "proof tool" })).toEqual([
       expect.objectContaining({ id: project.id, status: "draft" }),
     ]);
@@ -44,6 +53,59 @@ it("creates, lists, and loads a project with a normalized title", () => {
   }
 });
 
+it("appends idea updates and locks them after approval", () => {
+  const store = openTestStore();
+
+  try {
+    const project = store.createProject(projectInput);
+    const updated = store.updateIdea(project.id, {
+      ideaName: "IdeaProof Next",
+      idea: "A more detailed local proof tool for early software ideas.",
+      updateNote: "Expanded the target workflow.",
+    });
+    expect(updated).toMatchObject({
+      title: "IdeaProof Next",
+      idea: "A more detailed local proof tool for early software ideas.",
+    });
+    expect(store.getIdeaVersions(project.id).map((item) => item.version)).toEqual([
+      1, 2,
+    ]);
+
+    const addRevision = (documentType: "specification" | "nda") =>
+      store.addRevision({
+        projectId: project.id,
+        ideaVersionId: updated.currentIdeaVersionId,
+        documentType,
+        content: "# Document",
+        wordCount: 1,
+        feedback: null,
+        promptTemplateVersion:
+          documentType === "specification" ? "spec-v5" : "nda-v5",
+        provider: "openai",
+        model: "gpt-5.6",
+        providerResponseId: null,
+      });
+    const specification = addRevision("specification");
+    const nda = addRevision("nda");
+    store.createApproval({
+      projectId: project.id,
+      specificationRevisionId: specification.id,
+      ndaRevisionId: nda.id,
+      packagePath: "/tmp/package.zip",
+      artifacts: [],
+    });
+
+    expect(() =>
+      store.updateIdea(project.id, {
+        ideaName: "Changed",
+        idea: "Changed after approval",
+      }),
+    ).toThrowError(expect.objectContaining({ code: "PROJECT_IMMUTABLE" }));
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
 it("preserves every revision and selects one revision per document type", () => {
   const store = openTestStore();
 
@@ -52,6 +114,7 @@ it("preserves every revision and selects one revision per document type", () => 
     const addSpec = (content: string, feedback: string | null) =>
       store.addRevision({
         projectId: project.id,
+        ideaVersionId: project.currentIdeaVersionId,
         documentType: "specification",
         content,
         wordCount: 2,
@@ -91,6 +154,7 @@ it("rejects selecting a revision from another project", () => {
     });
     const revision = store.addRevision({
       projectId: secondProject.id,
+      ideaVersionId: secondProject.currentIdeaVersionId,
       documentType: "nda",
       content: "# NDA",
       wordCount: 1,
@@ -116,6 +180,7 @@ it("stores one provider and model for the project and its revisions", () => {
 
   try {
     const project = store.createProject({
+      ideaName: "Local Proof",
       idea: "A local tool that proves exact generated idea documents.",
       technologyPreference: "Next.js",
       ndaPurpose: "Evaluate a possible collaboration",
@@ -125,6 +190,7 @@ it("stores one provider and model for the project and its revisions", () => {
     });
     const revision = store.addRevision({
       projectId: project.id,
+      ideaVersionId: project.currentIdeaVersionId,
       documentType: "specification",
       content: "# Product Overview\n\nFixture",
       wordCount: 3,
@@ -157,6 +223,7 @@ it("rejects a revision from a different provider or model", () => {
     expect(() =>
       store.addRevision({
         projectId: project.id,
+        ideaVersionId: project.currentIdeaVersionId,
         documentType: "specification",
         content: "# Product Overview\n\nFixture",
         wordCount: 3,
@@ -227,15 +294,24 @@ it("migrates existing OpenAI revisions without losing their model or response ID
     try {
       expect(migrated.getProject(projectId)).toMatchObject({
         ownerName: "",
+        currentIdeaVersionId: projectId,
         provider: "openai",
         model: "gpt-5.6",
         revisions: [
           expect.objectContaining({
+            ideaVersionId: projectId,
             provider: "openai",
             providerResponseId: "resp_legacy",
           }),
         ],
       });
+      expect(migrated.getIdeaVersions(projectId)).toEqual([
+        expect.objectContaining({
+          id: projectId,
+          version: 1,
+          ideaName: "Legacy idea",
+        }),
+      ]);
     } finally {
       migrated.close();
     }
