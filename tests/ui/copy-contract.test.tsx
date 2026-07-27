@@ -119,7 +119,8 @@ it("uses plain approval and proof actions", () => {
   );
   expect(proof).toContain("Check confirmation");
   expect(proof).toContain("Download proof package");
-  expect(proof).toContain("Verify proof");
+  expect(proof).not.toContain('href="/verify"');
+  expect(proof).not.toContain(">Verify proof</");
 });
 
 it("explains verification and important limits in plain language", () => {

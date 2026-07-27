@@ -47,13 +47,16 @@ export default async function ProofPage({
     <div className="content-shell">
       <div className="proof-heading">
         <div className="page-heading">
-          <p className="section-label">Proof record</p>
           <h1>{project.title}</h1>
-          <p>
-            IdeaProof created a digital fingerprint of each approved PDF on{" "}
-            {new Date(project.approval.approvedAt).toLocaleString()}.
-            OpenTimestamps confirmation may take time, so check again later if
-            it is still pending.
+          <p className="timestamp-copy">
+            <span>
+              IdeaProof created a digital fingerprint of each approved PDF on{" "}
+              {new Date(project.approval.approvedAt).toLocaleString()}.
+            </span>
+            <span>
+              OpenTimestamps confirmation may take time, so check again later
+              if it is still pending.
+            </span>
           </p>
         </div>
         <StatusBadge status={project.status} />
@@ -86,11 +89,8 @@ export default async function ProofPage({
 
       <section className="approved-documents">
         <div className="section-heading compact-heading">
-          <div>
-            <p className="section-label">Approved contents</p>
-            <h2>Exact revisions in this proof</h2>
-          </div>
-          <Link href="/verify">Verify proof</Link>
+          <h2>Timestamped documents</h2>
+          <Link href={`/projects/${id}/history`}>Project history</Link>
         </div>
         {revisions.map((revision) => (
           <article key={revision.id} className="approved-document">

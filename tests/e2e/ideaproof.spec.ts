@@ -69,9 +69,38 @@ for (const provider of [
     .click();
   await expect(page).toHaveURL(/\/projects\/[^/]+\/proof$/);
   await expect(page.getByText("Pending confirmation").first()).toBeVisible();
+  const projectId = new URL(page.url()).pathname.split("/")[2];
+  const main = page.locator("main");
+  await expect(main.getByText("Proof record", { exact: true })).toHaveCount(0);
+  await expect(
+    main.getByRole("heading", { name: "Timestamped documents" }),
+  ).toBeVisible();
+  await expect(
+    main.getByRole("heading", { name: "Exact revisions in this proof" }),
+  ).toHaveCount(0);
+  await expect(main.getByRole("link", { name: "Verify proof" })).toHaveCount(0);
+  await expect(
+    main.getByRole("link", { name: "Project history" }),
+  ).toHaveAttribute("href", `/projects/${projectId}/history`);
+  await expect(page.locator(".timestamp-copy > span")).toHaveCount(2);
 
+  let releaseProofCheck!: () => void;
+  const proofCheckPaused = new Promise<void>((resolve) => {
+    releaseProofCheck = resolve;
+  });
+  await page.route("**/proof/check", async (route) => {
+    await proofCheckPaused;
+    await route.continue();
+  });
   await page.getByRole("button", { name: "Check confirmation" }).click();
+  await expect(
+    page.getByText(
+      "Checking whether OpenTimestamps has confirmed the digital fingerprints of both PDFs…",
+    ),
+  ).toBeVisible();
+  releaseProofCheck();
   await expect(page.getByText("Both proofs are confirmed.")).toBeVisible();
+  await page.unroute("**/proof/check");
 
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("link", { name: "Download proof package" }).click();

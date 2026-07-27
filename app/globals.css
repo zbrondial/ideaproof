@@ -335,13 +335,24 @@ a {
   margin-bottom: 26px;
 }
 
-.compact-heading .section-label {
-  margin-bottom: 10px;
-}
-
 .compact-heading a {
   color: var(--accent-hover);
   font-weight: 700;
+}
+
+.timestamp-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.timestamp-copy > span {
+  display: block;
+}
+
+@media (min-width: 701px) {
+  .compact-heading h2 {
+    white-space: nowrap;
+  }
 }
 
 .approved-document + .approved-document {

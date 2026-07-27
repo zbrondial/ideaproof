@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -23,24 +22,31 @@ export function ProofStatus({
 
   async function check() {
     setChecking(true);
-    setMessage("");
-    const response = await fetch(`/api/projects/${projectId}/proof/check`, {
-      method: "POST",
-    });
-    const body = await response.json();
-    setChecking(false);
-    if (!response.ok) {
-      setMessage(body.message ?? "The proofs could not be checked.");
-      return;
-    }
     setMessage(
-      body.status === "confirmed"
-        ? "Both proofs are confirmed."
-        : body.status === "pending"
-          ? "Confirmation is still pending. Check again later."
-          : "The proof needs attention.",
+      "Checking whether OpenTimestamps has confirmed the digital fingerprints of both PDFs…",
     );
-    router.refresh();
+    try {
+      const response = await fetch(`/api/projects/${projectId}/proof/check`, {
+        method: "POST",
+      });
+      const body = await response.json();
+      if (!response.ok) {
+        setMessage(body.message ?? "The proofs could not be checked.");
+        return;
+      }
+      setMessage(
+        body.status === "confirmed"
+          ? "Both proofs are confirmed."
+          : body.status === "pending"
+            ? "Confirmation is still pending. Check again later."
+            : "The proof needs attention.",
+      );
+      router.refresh();
+    } catch {
+      setMessage("IdeaProof could not reach its local server. Try again.");
+    } finally {
+      setChecking(false);
+    }
   }
 
   async function retry() {
@@ -92,9 +98,6 @@ export function ProofStatus({
           Download proof package
         </a>
       ) : null}
-      <Link className="button button-secondary" href="/verify">
-        Verify proof
-      </Link>
       {message ? (
         <p className="action-message" role="status">
           {message}

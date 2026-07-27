@@ -67,7 +67,7 @@ export function createFixtureResponsesPort(
       responseNumbers[provider] += 1;
       const isNdaRevision =
         request.documentType === "nda" &&
-        request.prompt.includes('"revisionFeedback"');
+        request.prompt.includes("REQUESTED CHANGES:");
       const prefix = provider === "openai" ? "resp" : "msg";
       return {
         id: `${prefix}_fixture_${responseNumbers[provider]}`,
