@@ -15,7 +15,9 @@ it("leaves missing NDA facts as blanks and excludes jurisdiction", () => {
     ndaDetails: "",
   });
 
-  expect(prompt).toContain("Party A: ______________________");
+  expect(prompt).toContain(
+    'For missing partyA, partyB, effectiveDate, or confidentialityPeriod fields, return exactly "______________________"',
+  );
   expect(prompt).toContain("sample NDA template");
   expect(prompt).toContain("Maximum 700 words");
   expect(prompt).toContain('"ideaName": "Ray"');
@@ -54,6 +56,6 @@ it("uses the canonical specification order and 1000-word ceiling", () => {
   );
   expect({ SPEC_PROMPT_VERSION, NDA_PROMPT_VERSION }).toEqual({
     SPEC_PROMPT_VERSION: "spec-v5",
-    NDA_PROMPT_VERSION: "nda-v5",
+    NDA_PROMPT_VERSION: "nda-v6",
   });
 });

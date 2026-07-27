@@ -1,5 +1,5 @@
 export const SPEC_PROMPT_VERSION = "spec-v5";
-export const NDA_PROMPT_VERSION = "nda-v5";
+export const NDA_PROMPT_VERSION = "nda-v6";
 
 function userFacts(value: object) {
   return `BEGIN USER FACTS
@@ -48,11 +48,7 @@ export function buildNdaPrompt(input: {
 
 Use plain, balanced language. This is not legal advice.
 Use the supplied Idea name exactly when referring to the disclosed idea.
-Missing facts must remain exactly as labeled blanks:
-Party A: ______________________
-Party B: ______________________
-Effective date: ______________________
-Confidentiality period: ______________________
+For missing partyA, partyB, effectiveDate, or confidentialityPeriod fields, return exactly "______________________" without a label. The document renderer adds each label.
 Do not add venue or choice-of-law clauses.
 
 ${userFacts({
