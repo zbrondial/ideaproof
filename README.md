@@ -31,8 +31,7 @@ declaration to the technical specification:
 The named person must affirm that declaration before first approval. It becomes
 part of the exact approved PDF and therefore part of that PDF’s digital
 fingerprint. A confirmed timestamp shows that the exact approved PDF existed by
-a certain time; it does not independently verify identity, resolve competing
-ownership claims, establish patent rights, or determine legal validity.
+a certain time.
 
 The sample NDA is not legal advice, and AI-generated content can contain
 errors. Review both documents before approval and consult a qualified lawyer
