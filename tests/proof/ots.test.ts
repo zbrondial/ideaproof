@@ -1,10 +1,21 @@
-import { expect, it, vi } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { afterEach, expect, it, vi } from "vitest";
 
 import {
   checkProof,
   resolveOtsExecutable,
   stampPdf,
 } from "@/server/proof/ots";
+
+const temporaryDirectories: string[] = [];
+afterEach(() => {
+  for (const directory of temporaryDirectories.splice(0)) {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 it("resolves the executable inside the project-local virtual environment", () => {
   expect(resolveOtsExecutable("/work/ideaproof")).toContain(
@@ -26,6 +37,21 @@ it("passes paths as arguments without a shell", async () => {
     ["stamp", "/tmp/project/file with spaces.pdf"],
     expect.objectContaining({ shell: false }),
   );
+});
+
+it("reuses an existing proof instead of trying to stamp it again", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "ideaproof-ots-"));
+  temporaryDirectories.push(directory);
+  const pdfPath = join(directory, "document.pdf");
+  writeFileSync(pdfPath, "approved PDF");
+  writeFileSync(`${pdfPath}.ots`, "existing proof");
+  const fakeRunner = vi.fn();
+
+  await expect(stampPdf(pdfPath, fakeRunner)).resolves.toEqual({
+    status: "pending",
+    otsPath: `${pdfPath}.ots`,
+  });
+  expect(fakeRunner).not.toHaveBeenCalled();
 });
 
 it("upgrades then verifies an existing proof", async () => {
@@ -92,4 +118,24 @@ it("rejects an unknown nonzero verification result", async () => {
     code: "OTS_VERIFY_FAILED",
     retryable: true,
   });
+});
+
+it("keeps an upgraded proof pending when Bitcoin Core is unavailable", async () => {
+  const fakeRunner = vi
+    .fn()
+    .mockResolvedValueOnce({
+      exitCode: 0,
+      stdout: "Success! Timestamp complete",
+      stderr: "",
+    })
+    .mockResolvedValueOnce({
+      exitCode: 1,
+      stdout: "",
+      stderr:
+        "Could not connect to Bitcoin node: Cookie file unusable and rpcpassword not specified",
+    });
+
+  await expect(
+    checkProof("/tmp/document.pdf", "/tmp/document.pdf.ots", fakeRunner),
+  ).resolves.toEqual({ status: "pending" });
 });

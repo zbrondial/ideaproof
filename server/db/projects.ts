@@ -21,6 +21,7 @@ export type ProofStatus = "pending" | "confirmed" | "failed";
 export type Project = {
   id: string;
   title: string;
+  currentIdeaVersionId: string;
   ownerName: string;
   idea: string;
   technologyPreference: string;
@@ -38,6 +39,7 @@ export type Project = {
 export type Revision = {
   id: string;
   projectId: string;
+  ideaVersionId: string;
   documentType: DocumentType;
   version: number;
   content: string;
@@ -47,6 +49,16 @@ export type Revision = {
   provider: AiProvider;
   model: string;
   providerResponseId: string | null;
+  createdAt: string;
+};
+
+export type IdeaVersion = {
+  id: string;
+  projectId: string;
+  version: number;
+  ideaName: string;
+  idea: string;
+  updateNote: string | null;
   createdAt: string;
 };
 
@@ -97,6 +109,7 @@ type ProjectRow = {
   status: ProjectStatus;
   selected_specification_revision_id: string | null;
   selected_nda_revision_id: string | null;
+  current_idea_version_id: string;
   created_at: string;
   updated_at: string;
 };
@@ -104,6 +117,7 @@ type ProjectRow = {
 type RevisionRow = {
   id: string;
   project_id: string;
+  idea_version_id: string;
   document_type: DocumentType;
   version: number;
   content: string;
@@ -113,6 +127,16 @@ type RevisionRow = {
   provider: AiProvider;
   model: string;
   provider_response_id: string | null;
+  created_at: string;
+};
+
+type IdeaVersionRow = {
+  id: string;
+  project_id: string;
+  version: number;
+  idea_name: string;
+  idea: string;
+  update_note: string | null;
   created_at: string;
 };
 
@@ -153,6 +177,7 @@ function projectFromRow(row: ProjectRow): Project {
   return {
     id: row.id,
     title: row.title,
+    currentIdeaVersionId: row.current_idea_version_id,
     ownerName: row.owner_name,
     idea: row.idea,
     technologyPreference: row.technology_preference,
@@ -172,6 +197,7 @@ function revisionFromRow(row: RevisionRow): Revision {
   return {
     id: row.id,
     projectId: row.project_id,
+    ideaVersionId: row.idea_version_id,
     documentType: row.document_type,
     version: row.version,
     content: row.content,
@@ -181,6 +207,18 @@ function revisionFromRow(row: RevisionRow): Revision {
     provider: row.provider,
     model: row.model,
     providerResponseId: row.provider_response_id,
+    createdAt: row.created_at,
+  };
+}
+
+function ideaVersionFromRow(row: IdeaVersionRow): IdeaVersion {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    version: row.version,
+    ideaName: row.idea_name,
+    idea: row.idea,
+    updateNote: row.update_note,
     createdAt: row.created_at,
   };
 }
@@ -257,6 +295,7 @@ export function createProjectStore(filename: string) {
 
   return {
     createProject(input: {
+      ideaName: string;
       ownerName?: string;
       idea: string;
       technologyPreference?: string;
@@ -265,29 +304,52 @@ export function createProjectStore(filename: string) {
       provider: AiProvider;
       model: string;
     }): Project {
-      const id = randomUUID();
-      const now = new Date().toISOString();
-      database
-        .prepare(
-          `INSERT INTO projects
-            (id, title, owner_name, idea, technology_preference, nda_purpose, nda_details,
-             provider, model, status, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
-        )
-        .run(
-          id,
-          deriveTitle(input.idea),
-          input.ownerName ?? "",
-          input.idea,
-          input.technologyPreference ?? "",
-          input.ndaPurpose,
-          input.ndaDetails ?? "",
-          input.provider,
-          input.model,
-          now,
-          now,
-        );
-      return projectFromRow(getProjectRow(id));
+      return inTransaction(database, () => {
+        const id = randomUUID();
+        const ideaVersionId = randomUUID();
+        const now = new Date().toISOString();
+        const ideaName = input.ideaName.trim();
+        if (!ideaName || ideaName.length > 120) {
+          throw new AppError(
+            "PROJECT_IDEA_NAME_INVALID",
+            "Add an Idea name within 120 characters.",
+            400,
+          );
+        }
+        database
+          .prepare(
+            `INSERT INTO projects
+              (id, title, owner_name, idea, technology_preference, nda_purpose,
+               nda_details, provider, model, status, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)`,
+          )
+          .run(
+            id,
+            ideaName,
+            input.ownerName ?? "",
+            input.idea,
+            input.technologyPreference ?? "",
+            input.ndaPurpose,
+            input.ndaDetails ?? "",
+            input.provider,
+            input.model,
+            now,
+            now,
+          );
+        database
+          .prepare(
+            `INSERT INTO idea_versions
+              (id, project_id, version, idea_name, idea, update_note, created_at)
+             VALUES (?, ?, 1, ?, ?, NULL, ?)`,
+          )
+          .run(ideaVersionId, id, ideaName, input.idea, now);
+        database
+          .prepare(
+            "UPDATE projects SET current_idea_version_id = ? WHERE id = ?",
+          )
+          .run(ideaVersionId, id);
+        return projectFromRow(getProjectRow(id));
+      });
     },
 
     listProjects(
@@ -397,8 +459,85 @@ export function createProjectStore(filename: string) {
       ).map(revisionFromRow);
     },
 
+    getIdeaVersions(projectId: string): IdeaVersion[] {
+      getProjectRow(projectId);
+      return (
+        database
+          .prepare(
+            `SELECT * FROM idea_versions
+             WHERE project_id = ?
+             ORDER BY version`,
+          )
+          .all(projectId) as IdeaVersionRow[]
+      ).map(ideaVersionFromRow);
+    },
+
+    updateIdea(
+      id: string,
+      input: {
+        ideaName: string;
+        idea: string;
+        updateNote?: string;
+      },
+    ): ProjectDetail {
+      return inTransaction(database, () => {
+        getProjectRow(id);
+        const approval = database
+          .prepare("SELECT id FROM approvals WHERE project_id = ?")
+          .get(id);
+        if (approval) {
+          throw new AppError(
+            "PROJECT_IMMUTABLE",
+            "Approved projects cannot be edited.",
+            409,
+          );
+        }
+        const ideaName = input.ideaName.trim();
+        const idea = input.idea.trim();
+        if (!ideaName || ideaName.length > 120 || !idea) {
+          throw new AppError(
+            "PROJECT_IDEA_INVALID",
+            "Add an Idea name and software idea.",
+            400,
+          );
+        }
+        const version = database
+          .prepare(
+            `SELECT COALESCE(MAX(version), 0) + 1 AS version
+             FROM idea_versions WHERE project_id = ?`,
+          )
+          .get(id) as { version: number };
+        const ideaVersionId = randomUUID();
+        const now = new Date().toISOString();
+        database
+          .prepare(
+            `INSERT INTO idea_versions
+              (id, project_id, version, idea_name, idea, update_note, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .run(
+            ideaVersionId,
+            id,
+            version.version,
+            ideaName,
+            idea,
+            input.updateNote?.trim() || null,
+            now,
+          );
+        database
+          .prepare(
+            `UPDATE projects
+             SET title = ?, idea = ?, current_idea_version_id = ?, updated_at = ?
+             WHERE id = ?`,
+          )
+          .run(ideaName, idea, ideaVersionId, now, id);
+        return this.getProject(id);
+      });
+    },
+
     addRevision(input: {
       projectId: string;
+      ideaVersionId: string;
       documentType: DocumentType;
       content: string;
       wordCount: number;
@@ -410,6 +549,16 @@ export function createProjectStore(filename: string) {
     }): Revision {
       return inTransaction(database, () => {
         const project = getProjectRow(input.projectId);
+        const ideaVersion = database
+          .prepare("SELECT project_id FROM idea_versions WHERE id = ?")
+          .get(input.ideaVersionId) as { project_id: string } | undefined;
+        if (!ideaVersion || ideaVersion.project_id !== input.projectId) {
+          throw new AppError(
+            "IDEA_VERSION_PROJECT_MISMATCH",
+            "The idea version does not belong to this project.",
+            409,
+          );
+        }
         if (
           input.provider !== project.provider ||
           input.model !== project.model
@@ -441,14 +590,15 @@ export function createProjectStore(filename: string) {
         database
           .prepare(
             `INSERT INTO revisions
-              (id, project_id, document_type, version, content, word_count,
+              (id, project_id, idea_version_id, document_type, version, content, word_count,
                feedback, prompt_template_version, provider, model,
                provider_response_id, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           )
           .run(
             id,
             input.projectId,
+            input.ideaVersionId,
             input.documentType,
             versionRow.version,
             input.content,
@@ -462,6 +612,24 @@ export function createProjectStore(filename: string) {
           );
         return revisionFromRow(getRevisionRow(id));
       });
+    },
+
+    selectedDocumentsUseCurrentIdea(projectId: string) {
+      const project = getProjectRow(projectId);
+      if (
+        !project.selected_specification_revision_id ||
+        !project.selected_nda_revision_id
+      ) {
+        return false;
+      }
+      const specification = getRevisionRow(
+        project.selected_specification_revision_id,
+      );
+      const nda = getRevisionRow(project.selected_nda_revision_id);
+      return (
+        specification.idea_version_id === project.current_idea_version_id &&
+        nda.idea_version_id === project.current_idea_version_id
+      );
     },
 
     selectRevision(
@@ -561,7 +729,7 @@ export function createProjectStore(filename: string) {
       }>;
     }): Approval {
       return inTransaction(database, () => {
-        getProjectRow(input.projectId);
+        const project = getProjectRow(input.projectId);
         const existing = database
           .prepare("SELECT id FROM approvals WHERE project_id = ?")
           .get(input.projectId);
@@ -584,6 +752,16 @@ export function createProjectStore(filename: string) {
           throw new AppError(
             "REVISION_PROJECT_MISMATCH",
             "Approval revisions must belong to the same project.",
+            409,
+          );
+        }
+        if (
+          specification.idea_version_id !== project.current_idea_version_id ||
+          nda.idea_version_id !== project.current_idea_version_id
+        ) {
+          throw new AppError(
+            "DOCUMENTS_OUTDATED",
+            "Regenerate both documents from the latest idea update before approval.",
             409,
           );
         }

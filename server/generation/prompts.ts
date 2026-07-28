@@ -1,5 +1,5 @@
-export const SPEC_PROMPT_VERSION = "spec-v3";
-export const NDA_PROMPT_VERSION = "nda-v3";
+export const SPEC_PROMPT_VERSION = "spec-v5";
+export const NDA_PROMPT_VERSION = "nda-v6";
 
 function userFacts(value: object) {
   return `BEGIN USER FACTS
@@ -16,12 +16,14 @@ Stop: If the input is incompatible, return concise neutral fields rather than gu
 }
 
 export function buildSpecificationPrompt(input: {
+  ideaName: string;
   idea: string;
   technologyPreference?: string;
 }) {
   return `${instructions("technical specification", 1_000)}
 
 Focus on an implementable local web application. State unknowns as decisions to validate.
+Use the supplied Idea name exactly as the title and product reference.
 Use this exact section order:
 1. Product Overview
 2. Core Features
@@ -30,12 +32,14 @@ Use this exact section order:
 5. Security Considerations
 
 ${userFacts({
+  ideaName: input.ideaName,
   idea: input.idea,
   technologyPreference: input.technologyPreference ?? "",
 })}`;
 }
 
 export function buildNdaPrompt(input: {
+  ideaName: string;
   idea: string;
   ndaPurpose: string;
   ndaDetails?: string;
@@ -43,14 +47,12 @@ export function buildNdaPrompt(input: {
   return `${instructions("sample NDA template", 700)}
 
 Use plain, balanced language. This is not legal advice.
-Missing facts must remain exactly as labeled blanks:
-Party A: ______________________
-Party B: ______________________
-Effective date: ______________________
-Confidentiality period: ______________________
+Use the supplied Idea name exactly when referring to the disclosed idea.
+For missing partyA, partyB, effectiveDate, or confidentialityPeriod fields, return exactly "______________________" without a label. The document renderer adds each label.
 Do not add venue or choice-of-law clauses.
 
 ${userFacts({
+  ideaName: input.ideaName,
   idea: input.idea,
   purpose: input.ndaPurpose,
   optionalDetails: input.ndaDetails ?? "",

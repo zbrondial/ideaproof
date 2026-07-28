@@ -25,10 +25,11 @@ export function ProjectForm({
     );
 
     try {
-      const response = await fetch("/api/projects", {
+      const response = await fetch("/api/ideas", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          ideaName: form.get("ideaName"),
           ownerName: form.get("ownerName"),
           idea: form.get("idea"),
           technologyPreference: form.get("technologyPreference"),
@@ -100,6 +101,21 @@ export function ProjectForm({
           </p>
         </div>
       )}
+      <div className="field">
+        <label htmlFor="ideaName">Idea name</label>
+        <input
+          id="ideaName"
+          name="ideaName"
+          required
+          minLength={1}
+          maxLength={120}
+          aria-describedby="idea-name-help"
+          placeholder="For example: IdeaProof"
+        />
+        <p className="field-help" id="idea-name-help">
+          Use a short working name.
+        </p>
+      </div>
       <div className="field">
         <label htmlFor="ownerName">Owner’s full name</label>
         <input

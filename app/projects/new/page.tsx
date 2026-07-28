@@ -1,6 +1,8 @@
 import { ProjectForm } from "@/components/project-form";
 import { listConfiguredProviders } from "@/server/config";
 
+export const dynamic = "force-dynamic";
+
 export default function NewProjectPage() {
   return (
     <div className="content-shell narrow-shell">

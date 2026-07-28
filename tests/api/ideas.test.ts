@@ -5,10 +5,11 @@ import { beforeAll, beforeEach, expect, it } from "vitest";
 
 import { jsonRequest } from "../helpers/http";
 
-let POST: typeof import("@/app/api/projects/route").POST;
-let GET: typeof import("@/app/api/projects/route").GET;
+let POST: typeof import("@/app/api/ideas/route").POST;
+let GET: typeof import("@/app/api/ideas/route").GET;
 
 const validProjectInput = {
+  ideaName: "IdeaProof",
   ownerName: "Ada Lovelace",
   idea: "A browser app that timestamps concise idea documents",
   technologyPreference: "",
@@ -20,7 +21,7 @@ beforeAll(async () => {
   process.env.IDEAPROOF_DATA_DIR = mkdtempSync(
     join(tmpdir(), "ideaproof-api-test-"),
   );
-  ({ POST, GET } = await import("@/app/api/projects/route"));
+  ({ POST, GET } = await import("@/app/api/ideas/route"));
 });
 
 beforeEach(() => {
@@ -32,6 +33,22 @@ beforeEach(() => {
 
 it("requires idea and NDA purpose", async () => {
   const response = await POST(jsonRequest({ idea: "", ndaPurpose: "" }));
+
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({
+    code: "PROJECT_INPUT_INVALID",
+  });
+});
+
+it("requires an Idea name", async () => {
+  const response = await POST(
+    jsonRequest({
+      ...validProjectInput,
+      ideaName: "",
+      provider: "openai",
+      model: "gpt-5.6",
+    }),
+  );
 
   expect(response.status).toBe(400);
   expect(await response.json()).toMatchObject({
@@ -51,6 +68,7 @@ it("creates a local draft without legal-detail fields", async () => {
   expect(response.status).toBe(201);
   const project = await response.json();
   expect(project).toMatchObject({
+    title: "IdeaProof",
     ownerName: "Ada Lovelace",
     status: "draft",
   });
@@ -86,7 +104,7 @@ it.each([
 
 it("lists matching projects through safe summaries", async () => {
   const response = await GET(
-    new Request("http://127.0.0.1:3000/api/projects?search=timestamps"),
+    new Request("http://127.0.0.1:3000/api/ideas?search=timestamps"),
   );
   const body = await response.json();
 

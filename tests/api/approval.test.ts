@@ -5,7 +5,7 @@ import { isAbsolute, join } from "node:path";
 import { strFromU8, unzipSync } from "fflate";
 import { afterEach, expect, it } from "vitest";
 
-import { handleApprove } from "@/app/api/projects/[id]/approve/route";
+import { handleApprove } from "@/app/api/ideas/[id]/approve/route";
 import { renderPdf as renderDocumentPdf } from "@/server/documents/pdf";
 import { AppError } from "@/server/errors";
 
@@ -24,6 +24,7 @@ function reviewProject(
   ownerName = "Private Owner Sentinel",
 ) {
   const project = store.createProject({
+    ideaName: "IdeaProof",
     ownerName,
     idea: "A local app that makes concise idea documents and timestamp proofs",
     ndaPurpose: "Discuss a possible product collaboration",
@@ -33,6 +34,7 @@ function reviewProject(
   store.transitionProject(project.id, "draft", "generating");
   const specification = store.addRevision({
     projectId: project.id,
+    ideaVersionId: project.currentIdeaVersionId,
     documentType: "specification",
     content: "# Technical Specification\n\nA concise implementation.",
     wordCount: 5,
@@ -44,6 +46,7 @@ function reviewProject(
   });
   const nda = store.addRevision({
     projectId: project.id,
+    ideaVersionId: project.currentIdeaVersionId,
     documentType: "nda",
     content:
       "# Sample Non-Disclosure Agreement\n\nParty A: ______________________",
@@ -207,6 +210,79 @@ it("allows a legacy project without an owner name to be approved", async () => {
     });
 
     expect(response.status).toBe(201);
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("rejects approval when selected documents predate the latest idea", async () => {
+  const store = openTestStore();
+  const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
+  temporaryDirectories.push(dataDir);
+  try {
+    const { project, specification, nda } = reviewProject(store);
+    store.updateIdea(project.id, {
+      ideaName: "IdeaProof Next",
+      idea: "A more detailed local app for timestamping exact idea documents.",
+    });
+
+    const response = await handleApprove({
+      projectId: project.id,
+      body: {
+        specificationRevisionId: specification.id,
+        ndaRevisionId: nda.id,
+        ownershipConfirmed: true,
+      },
+      store,
+      dataDir,
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "DOCUMENTS_OUTDATED",
+      message:
+        "Regenerate both documents from the latest idea update before approval.",
+    });
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("rejects approval when the idea changes during PDF rendering", async () => {
+  const store = openTestStore();
+  const dataDir = mkdtempSync(join(tmpdir(), "ideaproof-approval-"));
+  temporaryDirectories.push(dataDir);
+  try {
+    const { project, specification, nda } = reviewProject(store);
+    let ideaChanged = false;
+    const renderPdf: typeof renderDocumentPdf = async (input) => {
+      if (!ideaChanged) {
+        ideaChanged = true;
+        store.updateIdea(project.id, {
+          ideaName: "IdeaProof Next",
+          idea: "A more detailed local app for timestamping exact idea documents.",
+        });
+      }
+      return renderDocumentPdf(input);
+    };
+
+    const response = await handleApprove({
+      projectId: project.id,
+      body: {
+        specificationRevisionId: specification.id,
+        ndaRevisionId: nda.id,
+        ownershipConfirmed: true,
+      },
+      store,
+      dataDir,
+      renderPdf,
+    });
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "DOCUMENTS_OUTDATED",
+    });
+    expect(store.getProject(project.id).approval).toBeNull();
   } finally {
     store.closeAndRemove();
   }

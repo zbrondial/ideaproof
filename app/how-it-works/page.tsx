@@ -3,7 +3,7 @@ import Link from "next/link";
 const steps = [
   {
     title: "Describe",
-    copy: "Enter your idea, NDA purpose, and optional details. Your project is stored locally.",
+    copy: "Enter your idea, NDA purpose, and optional details. Your idea is stored locally.",
   },
   {
     title: "Choose and generate",

@@ -335,13 +335,24 @@ a {
   margin-bottom: 26px;
 }
 
-.compact-heading .section-label {
-  margin-bottom: 10px;
-}
-
 .compact-heading a {
   color: var(--accent-hover);
   font-weight: 700;
+}
+
+.timestamp-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.timestamp-copy > span {
+  display: block;
+}
+
+@media (min-width: 701px) {
+  .compact-heading h2 {
+    white-space: nowrap;
+  }
 }
 
 .approved-document + .approved-document {
@@ -1415,6 +1426,33 @@ textarea:focus {
 .history-list {
   display: grid;
   gap: 12px;
+}
+
+.history-section {
+  margin-top: 42px;
+}
+
+.history-section > h2 {
+  margin-bottom: 8px;
+}
+
+.idea-editor {
+  margin: 28px 0;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-small);
+  background: var(--surface);
+}
+
+.idea-editor > summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.idea-editor form {
+  display: grid;
+  gap: 18px;
+  margin-top: 22px;
 }
 
 .history-list details {

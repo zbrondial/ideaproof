@@ -23,6 +23,7 @@ test("capture public README screens", async ({ page }) => {
   });
 
   await page.goto("/projects/new");
+  await page.getByLabel("Idea name").fill("IdeaProof");
   await page.getByLabel("Owner’s full name").fill("Ada Lovelace");
   await page
     .getByLabel("Raw software idea")
@@ -84,13 +85,13 @@ test("capture public README screens", async ({ page }) => {
     fullPage: true,
   });
 
-  await page.getByRole("link", { name: "Revision history" }).click();
+  await page.getByRole("link", { name: "Project history" }).click();
   await expect(page).toHaveURL(/\/history$/);
   await expect(
-    page.getByRole("heading", { name: "Revision history" }),
+    page.getByRole("heading", { name: "Project history" }),
   ).toBeVisible();
   await expect(
-    page.getByText("Every accepted generation remains available"),
+    page.getByText("Idea updates and generated documents remain available"),
   ).toBeVisible();
   await page.screenshot({
     path: "/tmp/ideaproof-history.png",

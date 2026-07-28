@@ -57,6 +57,25 @@ export default async function ApprovePage({
       </div>
     );
   }
+  if (
+    specification.ideaVersionId !== project.currentIdeaVersionId ||
+    nda.ideaVersionId !== project.currentIdeaVersionId
+  ) {
+    return (
+      <div className="content-shell narrow-shell">
+        <div className="empty-state">
+          <h1>These documents need to be regenerated.</h1>
+          <p>
+            Regenerate both documents from the latest idea update before
+            approval.
+          </p>
+          <Link className="button" href={`/projects/${id}/review`}>
+            Return to review
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="content-shell narrow-shell">

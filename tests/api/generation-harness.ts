@@ -1,7 +1,7 @@
 import { vi } from "vitest";
 
-import { handleGenerate } from "@/app/api/projects/[id]/generate/[documentType]/route";
-import { handleRevision } from "@/app/api/projects/[id]/revisions/route";
+import { handleGenerate } from "@/app/api/ideas/[id]/generate/[documentType]/route";
+import { handleRevision } from "@/app/api/ideas/[id]/revisions/route";
 import type { DocumentType } from "@/server/db/projects";
 
 import { openTestStore } from "../helpers/open-test-store";
@@ -26,9 +26,14 @@ export const validGeneratedNda = {
   providerResponseId: "resp_nda",
 };
 
-function testRevision(projectId: string, documentType: DocumentType) {
+function testRevision(
+  projectId: string,
+  ideaVersionId: string,
+  documentType: DocumentType,
+) {
   return {
     projectId,
+    ideaVersionId,
     documentType,
     content: documentType === "nda" ? "# Existing NDA" : "# Existing spec",
     wordCount: 3,
@@ -50,6 +55,7 @@ export function createGenerationHarness(
 ) {
   const store = openTestStore();
   const project = store.createProject({
+    ideaName: "IdeaProof",
     ownerName: options.ownerName,
     idea: "A local web app that creates concise idea documents and timestamps approved PDFs.",
     technologyPreference: "Next.js",
@@ -64,10 +70,14 @@ export function createGenerationHarness(
     revise: vi.fn(),
   };
   const spec = options.withExistingDocuments
-    ? store.addRevision(testRevision(project.id, "specification"))
+    ? store.addRevision(
+        testRevision(project.id, project.currentIdeaVersionId, "specification"),
+      )
     : undefined;
   const nda = options.withExistingDocuments
-    ? store.addRevision(testRevision(project.id, "nda"))
+    ? store.addRevision(
+        testRevision(project.id, project.currentIdeaVersionId, "nda"),
+      )
     : undefined;
   if (spec) store.selectRevision(project.id, "specification", spec.id);
   if (nda) store.selectRevision(project.id, "nda", nda.id);

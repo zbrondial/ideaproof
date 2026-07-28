@@ -34,8 +34,13 @@ ${list(output.securityConsiderations)}
 `;
 }
 
-function blank(value: string) {
-  return value.trim() || "______________________";
+function blank(value: string, label: string) {
+  const trimmed = value.trim();
+  const prefix = `${label}:`;
+  const unlabeled = trimmed.toLowerCase().startsWith(prefix.toLowerCase())
+    ? trimmed.slice(prefix.length).trim()
+    : trimmed;
+  return unlabeled || "______________________";
 }
 
 export function toNdaMarkdown(output: MutualNdaOutput): string {
@@ -43,11 +48,11 @@ export function toNdaMarkdown(output: MutualNdaOutput): string {
 
 > ${output.notice}
 
-**Party A:** ${blank(output.partyA)}
+**Party A:** ${blank(output.partyA, "Party A")}
 
-**Party B:** ${blank(output.partyB)}
+**Party B:** ${blank(output.partyB, "Party B")}
 
-**Effective date:** ${blank(output.effectiveDate)}
+**Effective date:** ${blank(output.effectiveDate, "Effective date")}
 
 ## Purpose
 
@@ -65,7 +70,7 @@ ${output.exclusions}
 
 ${output.obligations}
 
-**Confidentiality period:** ${blank(output.confidentialityPeriod)}
+**Confidentiality period:** ${blank(output.confidentialityPeriod, "Confidentiality period")}
 
 ## Return or destruction
 

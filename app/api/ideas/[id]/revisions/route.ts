@@ -86,6 +86,7 @@ export async function handleRevision({
       generation ?? (await realGeneration(project.provider, project.model));
     const generated = await selectedGeneration.revise({
       documentType: input.documentType,
+      ideaName: project.title,
       idea: project.idea,
       technologyPreference: project.technologyPreference,
       ndaPurpose: project.ndaPurpose,
@@ -95,6 +96,7 @@ export async function handleRevision({
     });
     const nextRevision = store.addRevision({
       projectId,
+      ideaVersionId: project.currentIdeaVersionId,
       documentType: input.documentType,
       content: generated.markdown,
       wordCount: generated.wordCount,

@@ -3,6 +3,7 @@ import { expect, it } from "vitest";
 import { openTestStore } from "../helpers/open-test-store";
 
 const projectInput = {
+  ideaName: "IdeaProof",
   idea: "A local proof tool for concise idea documents",
   technologyPreference: "TypeScript",
   ndaPurpose: "Discuss a possible collaboration",
@@ -18,6 +19,7 @@ function addRevision(
 ) {
   return store.addRevision({
     projectId,
+    ideaVersionId: store.getProject(projectId).currentIdeaVersionId,
     documentType,
     content: documentType === "nda" ? "# NDA" : "# Specification",
     wordCount: 1,
@@ -92,6 +94,7 @@ it("creates one immutable approval for revisions from the same project", () => {
     expect(() =>
       store.addRevision({
         projectId: project.id,
+        ideaVersionId: project.currentIdeaVersionId,
         documentType: "nda",
         content: "# Later NDA",
         wordCount: 2,

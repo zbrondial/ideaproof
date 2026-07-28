@@ -89,6 +89,9 @@ export async function stampPdf(
   pdfPath: string,
   runner: ProcessRunner = runProcess,
 ): Promise<{ status: "pending"; otsPath: string }> {
+  const otsPath = `${pdfPath}.ots`;
+  if (existsSync(otsPath)) return { status: "pending", otsPath };
+
   try {
     const result = await runner(
       executableFor(runner),
@@ -103,7 +106,7 @@ export async function stampPdf(
         true,
       );
     }
-    return { status: "pending", otsPath: `${pdfPath}.ots` };
+    return { status: "pending", otsPath };
   } catch (error) {
     if (error instanceof AppError) throw error;
     return mapProcessError(error);
@@ -129,6 +132,14 @@ export async function checkProof(
     );
     const output = `${verified.stdout}\n${verified.stderr}`;
     const parsed = parseOtsOutput(output);
+    if (
+      verified.exitCode !== 0 &&
+      /could not connect to bitcoin node|rpcpassword not specified|cookie file unusable/i.test(
+        output,
+      )
+    ) {
+      return { status: "pending" };
+    }
     const expectedNonzero =
       parsed.status === "mismatch" ||
       parsed.status === "invalid" ||

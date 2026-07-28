@@ -13,11 +13,13 @@ export function ReviewWorkspace({
   revisions,
   initialSpecificationId,
   initialNdaId,
+  currentIdeaVersionId,
 }: {
   projectId: string;
   revisions: Revision[];
   initialSpecificationId: string;
   initialNdaId: string;
+  currentIdeaVersionId: string;
 }) {
   const router = useRouter();
   const [documentType, setDocumentType] =
@@ -35,12 +37,19 @@ export function ReviewWorkspace({
   );
   const revision =
     available.find((item) => item.id === selected[documentType]) ?? available[0];
+  const selectedSpecification = revisions.find(
+    (item) => item.id === selected.specification,
+  );
+  const selectedNda = revisions.find((item) => item.id === selected.nda);
+  const selectedDocumentsAreCurrent =
+    selectedSpecification?.ideaVersionId === currentIdeaVersionId &&
+    selectedNda?.ideaVersionId === currentIdeaVersionId;
 
   async function revise(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
-    const response = await fetch(`/api/projects/${projectId}/revisions`, {
+    const response = await fetch(`/api/ideas/${projectId}/revisions`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -141,12 +150,18 @@ export function ReviewWorkspace({
           </div>
         </dl>
         <div className="review-actions">
-          <Link
-            className="button"
-            href={`/projects/${projectId}/approve?specificationRevisionId=${encodeURIComponent(selected.specification)}&ndaRevisionId=${encodeURIComponent(selected.nda)}`}
-          >
-            Approve selected revisions
-          </Link>
+          {selectedDocumentsAreCurrent ? (
+            <Link
+              className="button"
+              href={`/projects/${projectId}/approve?specificationRevisionId=${encodeURIComponent(selected.specification)}&ndaRevisionId=${encodeURIComponent(selected.nda)}`}
+            >
+              Approve selected revisions
+            </Link>
+          ) : (
+            <p className="stale-notice">
+              Your idea changed after these documents were generated.
+            </p>
+          )}
         </div>
       </aside>
     </div>

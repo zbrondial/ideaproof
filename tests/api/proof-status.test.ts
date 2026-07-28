@@ -4,8 +4,8 @@ import { join } from "node:path";
 
 import { afterEach, expect, it, vi } from "vitest";
 
-import { handlePackage } from "@/app/api/projects/[id]/package/route";
-import { handleProofCheck } from "@/app/api/projects/[id]/proof/check/route";
+import { handlePackage } from "@/app/api/ideas/[id]/package/route";
+import { handleProofCheck } from "@/app/api/ideas/[id]/proof/check/route";
 
 import { openTestStore } from "../helpers/open-test-store";
 
@@ -18,6 +18,7 @@ afterEach(() => {
 
 function pendingProject(store: ReturnType<typeof openTestStore>) {
   const project = store.createProject({
+    ideaName: "IdeaProof",
     idea: "A local app that verifies timestamped idea documents",
     ndaPurpose: "Discuss a possible collaboration",
     provider: "openai",
@@ -27,6 +28,7 @@ function pendingProject(store: ReturnType<typeof openTestStore>) {
   const add = (documentType: "specification" | "nda") =>
     store.addRevision({
       projectId: project.id,
+      ideaVersionId: project.currentIdeaVersionId,
       documentType,
       content: `# ${documentType}`,
       wordCount: 1,
