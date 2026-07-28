@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -55,6 +55,7 @@ export function setupOpenTimestamps(options = {}) {
   const platform = options.platform ?? process.platform;
   const run = options.run ?? spawnSync;
   const exists = options.exists ?? existsSync;
+  const lstat = options.lstat ?? lstatSync;
   const candidates =
     platform === "win32"
       ? [
@@ -81,11 +82,22 @@ export function setupOpenTimestamps(options = {}) {
     });
     if (created.status !== 0) return created.status ?? 1;
   } else {
+    try {
+      if (lstat(venv).isSymbolicLink()) {
+        process.stderr.write(
+          "Refusing to use a symlinked or junction-backed .venv directory.\n",
+        );
+        return 1;
+      }
+    } catch {
+      return 1;
+    }
     const validated = run(
       resolveVenvPython(root, platform),
       [
         "-c",
-        "import sys; raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)",
+        "import os,sys; raise SystemExit(0 if sys.prefix != sys.base_prefix and os.path.realpath(sys.prefix) == os.path.realpath(sys.argv[1]) else 1)",
+        venv,
       ],
       { stdio: "ignore" },
     );

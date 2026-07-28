@@ -8,7 +8,7 @@ export type PythonVersionResult = {
 
 export type SetupProcessOptions =
   | { encoding: "utf8" }
-  | { stdio: "inherit" };
+  | { stdio: "inherit" | "ignore" };
 
 export type PythonVersionRunner = (
   command: string,
@@ -27,6 +27,7 @@ export type SetupOpenTimestampsOptions = {
   root?: string;
   platform?: NodeJS.Platform;
   exists?: (path: string) => boolean;
+  lstat?: (path: string) => { isSymbolicLink(): boolean };
   run?: PythonVersionRunner;
 };
 

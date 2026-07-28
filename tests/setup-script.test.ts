@@ -100,6 +100,7 @@ it("repairs a corrupt existing venv before installing", () => {
       root: "/work/ideaproof",
       platform: "linux",
       exists: () => true,
+      lstat: () => ({ isSymbolicLink: () => false }),
       run,
     }),
   ).toBe(0);
@@ -108,7 +109,8 @@ it("repairs a corrupt existing venv before installing", () => {
     "/work/ideaproof/.venv/bin/python",
     [
       "-c",
-      "import sys; raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)",
+      "import os,sys; raise SystemExit(0 if sys.prefix != sys.base_prefix and os.path.realpath(sys.prefix) == os.path.realpath(sys.argv[1]) else 1)",
+      "/work/ideaproof/.venv",
     ],
     { stdio: "ignore" },
   );
@@ -130,4 +132,28 @@ it("repairs a corrupt existing venv before installing", () => {
     ],
     { stdio: "inherit" },
   );
+});
+
+it("rejects a symlinked or junction-backed venv before repair or install", () => {
+  const run = vi
+    .fn()
+    .mockReturnValueOnce({ status: 0, stdout: "Python 3.12.4" });
+  const stderr = vi
+    .spyOn(process.stderr, "write")
+    .mockImplementation(() => true);
+
+  try {
+    expect(
+      setupOpenTimestamps({
+        root: "/work/ideaproof",
+        platform: "linux",
+        exists: () => true,
+        lstat: () => ({ isSymbolicLink: () => true }),
+        run,
+      }),
+    ).toBe(1);
+    expect(run).toHaveBeenCalledTimes(1);
+  } finally {
+    stderr.mockRestore();
+  }
 });
