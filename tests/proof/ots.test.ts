@@ -121,6 +121,40 @@ it("rejects an unknown nonzero verification result", async () => {
 });
 
 it("keeps an upgraded proof pending when Bitcoin Core is unavailable", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "ideaproof-ots-"));
+  temporaryDirectories.push(directory);
+  const pdfPath = join(directory, "document.pdf");
+  writeFileSync(pdfPath, "approved PDF");
+  const fakeRunner = vi
+    .fn()
+    .mockResolvedValueOnce({
+      exitCode: 0,
+      stdout: "Success! Timestamp complete",
+      stderr: "",
+    })
+    .mockResolvedValueOnce({
+      exitCode: 1,
+      stdout: "",
+      stderr:
+        "Could not connect to local Bitcoin node: [Errno 61] Connection refused",
+    })
+    .mockResolvedValueOnce({
+      exitCode: 0,
+      stdout:
+        "File sha256 hash: 4c9fa23c61d37c19588c4b8736dde1a483b5ea81c18e05dab55ea8d55d003255\nTimestamp:\nverify PendingAttestation('https://calendar.example')",
+      stderr: "",
+    });
+
+  await expect(
+    checkProof(pdfPath, `${pdfPath}.ots`, fakeRunner),
+  ).resolves.toEqual({ status: "pending" });
+});
+
+it("confirms a matching upgraded proof from its embedded Bitcoin attestation when Bitcoin Core is unavailable", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "ideaproof-ots-"));
+  temporaryDirectories.push(directory);
+  const pdfPath = join(directory, "document.pdf");
+  writeFileSync(pdfPath, "approved PDF");
   const fakeRunner = vi
     .fn()
     .mockResolvedValueOnce({
@@ -133,9 +167,24 @@ it("keeps an upgraded proof pending when Bitcoin Core is unavailable", async () 
       stdout: "",
       stderr:
         "Could not connect to Bitcoin node: Cookie file unusable and rpcpassword not specified",
+    })
+    .mockResolvedValueOnce({
+      exitCode: 0,
+      stdout:
+        "File sha256 hash: 4c9fa23c61d37c19588c4b8736dde1a483b5ea81c18e05dab55ea8d55d003255\nTimestamp:\nverify BitcoinBlockHeaderAttestation(959810)",
+      stderr: "",
     });
 
   await expect(
-    checkProof("/tmp/document.pdf", "/tmp/document.pdf.ots", fakeRunner),
-  ).resolves.toEqual({ status: "pending" });
+    checkProof(pdfPath, `${pdfPath}.ots`, fakeRunner),
+  ).resolves.toEqual({
+    status: "confirmed",
+    bitcoinBlockHeight: 959810,
+  });
+  expect(fakeRunner).toHaveBeenNthCalledWith(
+    3,
+    expect.stringContaining("ots"),
+    ["info", `${pdfPath}.ots`],
+    expect.objectContaining({ shell: false }),
+  );
 });

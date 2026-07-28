@@ -69,6 +69,21 @@ it.each([
   });
 });
 
+it("describes an embedded Bitcoin attestation without claiming node verification", async () => {
+  const response = await verifyMultipart(validFiles, {
+    checkProof: async () => ({
+      status: "confirmed",
+      bitcoinBlockHeight: 959810,
+    }),
+  });
+
+  expect(await response.json()).toMatchObject({
+    status: "confirmed",
+    message:
+      "The proof matches these exact PDF bytes and contains a Bitcoin block attestation.",
+  });
+});
+
 it("rejects disguised PDF uploads", async () => {
   const response = await verifyMultipart({
     document: new File([new Uint8Array(12)], "document.txt", {

@@ -213,12 +213,12 @@ proof page later. Timestamp retries reuse an existing matching `.ots` file
 instead of trying to overwrite it.
 
 The project-local Python OpenTimestamps client can create and upgrade proofs
-through public calendars without Bitcoin Core. Its full independent
-verification step requires access to a local Bitcoin Core node; a pruned node
-is sufficient. When Bitcoin Core is unavailable, IdeaProof keeps an upgraded
-proof pending instead of incorrectly marking it failed. You can also verify a
-PDF and proof with the [OpenTimestamps browser
-verifier](https://opentimestamps.org/).
+through public calendars without Bitcoin Core. When Bitcoin Core is
+unavailable, IdeaProof confirms that the PDF digest matches the proof and that
+the upgraded proof contains a Bitcoin block attestation. Full independent
+verification of that block still requires access to a local Bitcoin Core node;
+a pruned node is sufficient. You can also independently verify a PDF and proof
+with the [OpenTimestamps browser verifier](https://opentimestamps.org/).
 
 To verify through IdeaProof, open **Verify proof** and select a PDF together
 with its matching `.ots` file. Any change to the PDF causes a mismatch.
@@ -266,10 +266,10 @@ reported without logging the key or raw response.
 ### Proof remains pending
 
 This can be normal while OpenTimestamps completes confirmation. Wait and use
-**Check confirmation** again. If the proof has already been upgraded but no
-local Bitcoin Core node is available, IdeaProof deliberately leaves it pending;
-use the OpenTimestamps browser verifier or connect the client to Bitcoin Core
-for full independent verification. Do not edit the PDF or `.ots` file.
+**Check confirmation** again. Once the upgraded proof contains a Bitcoin block
+attestation, IdeaProof marks it confirmed even without a local Bitcoin Core
+node. Use the OpenTimestamps browser verifier or connect the client to Bitcoin
+Core for full independent verification. Do not edit the PDF or `.ots` file.
 
 ### Timestamp retry says the calendar is unavailable
 

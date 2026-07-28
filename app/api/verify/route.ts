@@ -19,13 +19,16 @@ type Checker = (
   otsPath: string,
 ) => Promise<VerificationResult>;
 
-function messageFor(status: VerificationResult["status"]) {
+function messageFor(result: VerificationResult) {
+  if (result.status === "confirmed" && !result.confirmedAt) {
+    return "The proof matches these exact PDF bytes and contains a Bitcoin block attestation.";
+  }
   return {
     confirmed: "The proof confirms these exact PDF bytes.",
     pending: "The proof is valid but is still awaiting confirmation.",
     mismatch: "The proof does not match these PDF bytes.",
     invalid: "The timestamp proof is invalid.",
-  }[status];
+  }[result.status];
 }
 
 export async function handleVerify(
@@ -108,7 +111,7 @@ export async function handleVerify(
     return NextResponse.json({
       ...result,
       sha256: sha256(documentBytes),
-      message: messageFor(result.status),
+      message: messageFor(result),
     });
   } catch (error) {
     if (error instanceof AppError) {
