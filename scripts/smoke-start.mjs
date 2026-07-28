@@ -2,9 +2,16 @@ import { spawn } from "node:child_process";
 
 const port = process.env.IDEAPROOF_SMOKE_PORT ?? "3000";
 const url = `http://127.0.0.1:${port}`;
+const smokeEnv = {
+  ...process.env,
+  OPENAI_API_KEY:
+    process.env.OPENAI_API_KEY?.trim() || "smoke-fixture-key",
+  IDEAPROOF_DATA_DIR:
+    process.env.IDEAPROOF_DATA_DIR ?? "./data",
+};
 const child = spawn("npm", ["start", "--", "--port", port], {
   cwd: process.cwd(),
-  env: process.env,
+  env: smokeEnv,
   stdio: ["ignore", "pipe", "pipe"],
 });
 

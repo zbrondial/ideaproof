@@ -9,15 +9,19 @@
   },
   "scripts": {
     "setup": "node scripts/setup-ots.mjs",
+    "preflight": "node scripts/startup-preflight.mjs",
+    "predev": "npm run preflight",
     "dev": "next dev --hostname 127.0.0.1",
     "build": "next build",
+    "prestart": "npm run preflight",
     "start": "next start --hostname 127.0.0.1 --port 3000",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build",
-    "smoke": "node scripts/smoke-start.mjs"
+    "smoke": "node scripts/smoke-start.mjs",
+    "smoke:preflight": "node scripts/smoke-preflight-failure.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

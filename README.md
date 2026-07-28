@@ -77,11 +77,10 @@ to an AI provider or OpenTimestamps.
 
    Add at least one API key after its equals sign. Leave the unused key blank.
 
-5. Install the Node and project-local OpenTimestamps dependencies:
+5. Install the Node dependencies:
 
    ```bash
    npm install
-   npm run setup
    ```
 
 6. Build and start:
@@ -92,6 +91,16 @@ to an AI provider or OpenTimestamps.
    ```
 
 7. Open [http://localhost:3000](http://localhost:3000).
+
+Before development or production startup, IdeaProof checks Node.js, npm,
+Python, provider configuration, local data-directory access, and the
+project-local OpenTimestamps client. The first successful start creates
+`.venv` and installs the pinned OpenTimestamps client when needed.
+
+Startup stops with an actionable error if a machine prerequisite or provider
+key is missing. Automatic OpenTimestamps installation requires package-index
+network access once; later starts use the existing local executable without
+reinstalling it.
 
 The API key stays in the server process and is not returned to the browser,
 stored in SQLite, or included in proof packages. Keep `.env` private; it is
@@ -105,8 +114,8 @@ IdeaProof shows only the providers configured in `.env`:
 - Anthropic key only: new projects use Claude.
 - Both keys: choose OpenAI or Claude when creating each project; OpenAI is
   selected by default.
-- No keys: document generation stays disabled and Setup explains what is
-  missing.
+- No keys: startup stops and explains that at least one provider key is
+  required.
 
 One provider and model are fixed for each project. The same choice generates
 both documents and every later revision, so a project cannot silently switch
@@ -238,7 +247,9 @@ page reports readiness without exposing secret values or internal paths.
 
 ### OpenTimestamps is missing
 
-Confirm Python is available, then rerun:
+Startup installs the pinned project-local client automatically. If that
+installation fails, confirm Python and package-index network access are
+available, then rerun:
 
 ```bash
 python3 --version
