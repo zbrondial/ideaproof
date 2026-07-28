@@ -5,6 +5,8 @@
 *.tsbuildinfo
 .venv/
 data/
+demo-output/
+docs/superpowers/
 node_modules/
 playwright-report/
 test-results/
