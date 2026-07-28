@@ -1,10 +1,16 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { AppError } from "@/server/errors";
 
-import { parseOtsOutput, type VerificationResult } from "./parse";
+import {
+  parseOtsInfo,
+  parseOtsOutput,
+  type VerificationResult,
+} from "./parse";
 
 export type ProcessResult = {
   exitCode: number;
@@ -134,11 +140,20 @@ export async function checkProof(
     const parsed = parseOtsOutput(output);
     if (
       verified.exitCode !== 0 &&
-      /could not connect to bitcoin node|rpcpassword not specified|cookie file unusable/i.test(
+      /could not connect to (?:local )?bitcoin node|rpcpassword not specified|cookie file unusable/i.test(
         output,
       )
     ) {
-      return { status: "pending" };
+      const info = await runner(
+        executable,
+        ["info", otsPath],
+        processOptions(dirname(otsPath)),
+      );
+      if (info.exitCode !== 0) return { status: "pending" };
+      const pdfSha256 = createHash("sha256")
+        .update(await readFile(pdfPath))
+        .digest("hex");
+      return parseOtsInfo(`${info.stdout}\n${info.stderr}`, pdfSha256);
     }
     const expectedNonzero =
       parsed.status === "mismatch" ||

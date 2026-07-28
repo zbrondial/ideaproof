@@ -1,7 +1,33 @@
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, lstatSync } from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
+
+export const OTS_CLIENT_VERSION = "0.7.2";
+
+function platformPath(platform) {
+  return platform === "win32" ? path.win32 : path.posix;
+}
+
+export function resolveOtsExecutable(
+  root = process.cwd(),
+  platform = process.platform,
+) {
+  const paths = platformPath(platform);
+  return platform === "win32"
+    ? paths.join(root, ".venv", "Scripts", "ots.exe")
+    : paths.join(root, ".venv", "bin", "ots");
+}
+
+export function resolveVenvPython(
+  root = process.cwd(),
+  platform = process.platform,
+) {
+  const paths = platformPath(platform);
+  return platform === "win32"
+    ? paths.join(root, ".venv", "Scripts", "python.exe")
+    : paths.join(root, ".venv", "bin", "python");
+}
 
 function supportsPython(versionOutput) {
   const match = /Python\s+(\d+)\.(\d+)/.exec(versionOutput);
@@ -24,9 +50,14 @@ export function findPython(candidates, run = spawnSync) {
   return null;
 }
 
-export function setupOpenTimestamps() {
+export function setupOpenTimestamps(options = {}) {
+  const root = options.root ?? process.cwd();
+  const platform = options.platform ?? process.platform;
+  const run = options.run ?? spawnSync;
+  const exists = options.exists ?? existsSync;
+  const lstat = options.lstat ?? lstatSync;
   const candidates =
-    process.platform === "win32"
+    platform === "win32"
       ? [
           ["py", ["-3"]],
           ["python", []],
@@ -35,7 +66,7 @@ export function setupOpenTimestamps() {
           ["python3", []],
           ["python", []],
         ];
-  const selected = findPython(candidates);
+  const selected = findPython(candidates, run);
   if (!selected) {
     process.stderr.write(
       "Python 3.9+ is required. Install Python, then rerun npm run setup.\n",
@@ -44,21 +75,51 @@ export function setupOpenTimestamps() {
   }
 
   const [python, prefix] = selected;
-  const venv = join(process.cwd(), ".venv");
-  if (!existsSync(venv)) {
-    const created = spawnSync(python, [...prefix, "-m", "venv", venv], {
+  const venv = platformPath(platform).join(root, ".venv");
+  if (!exists(venv)) {
+    const created = run(python, [...prefix, "-m", "venv", venv], {
       stdio: "inherit",
     });
     if (created.status !== 0) return created.status ?? 1;
+  } else {
+    try {
+      if (lstat(venv).isSymbolicLink()) {
+        process.stderr.write(
+          "Refusing to use a symlinked or junction-backed .venv directory.\n",
+        );
+        return 1;
+      }
+    } catch {
+      return 1;
+    }
+    const validated = run(
+      resolveVenvPython(root, platform),
+      [
+        "-c",
+        "import os,sys; raise SystemExit(0 if sys.prefix != sys.base_prefix and os.path.realpath(sys.prefix) == os.path.realpath(sys.argv[1]) else 1)",
+        venv,
+      ],
+      { stdio: "ignore" },
+    );
+    if (validated.status !== 0) {
+      const repaired = run(
+        python,
+        [...prefix, "-m", "venv", "--clear", venv],
+        { stdio: "inherit" },
+      );
+      if (repaired.status !== 0) return repaired.status ?? 1;
+    }
   }
 
-  const venvPython =
-    process.platform === "win32"
-      ? join(venv, "Scripts", "python.exe")
-      : join(venv, "bin", "python");
-  const installed = spawnSync(
-    venvPython,
-    ["-m", "pip", "install", "opentimestamps-client==0.7.2"],
+  const installed = run(
+    resolveVenvPython(root, platform),
+    [
+      "-m",
+      "pip",
+      "--require-virtualenv",
+      "install",
+      `opentimestamps-client==${OTS_CLIENT_VERSION}`,
+    ],
     { stdio: "inherit" },
   );
   return installed.status ?? 1;

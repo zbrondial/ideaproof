@@ -31,8 +31,7 @@ declaration to the technical specification:
 The named person must affirm that declaration before first approval. It becomes
 part of the exact approved PDF and therefore part of that PDF’s digital
 fingerprint. A confirmed timestamp shows that the exact approved PDF existed by
-a certain time; it does not independently verify identity, resolve competing
-ownership claims, establish patent rights, or determine legal validity.
+a certain time.
 
 The sample NDA is not legal advice, and AI-generated content can contain
 errors. Review both documents before approval and consult a qualified lawyer
@@ -77,11 +76,10 @@ to an AI provider or OpenTimestamps.
 
    Add at least one API key after its equals sign. Leave the unused key blank.
 
-5. Install the Node and project-local OpenTimestamps dependencies:
+5. Install the Node dependencies:
 
    ```bash
    npm install
-   npm run setup
    ```
 
 6. Build and start:
@@ -92,6 +90,16 @@ to an AI provider or OpenTimestamps.
    ```
 
 7. Open [http://localhost:3000](http://localhost:3000).
+
+Before development or production startup, IdeaProof checks Node.js, npm,
+Python, provider configuration, local data-directory access, and the
+project-local OpenTimestamps client. The first successful start creates
+`.venv` and installs the pinned OpenTimestamps client when needed.
+
+Startup stops with an actionable error if a machine prerequisite or provider
+key is missing. Automatic OpenTimestamps installation requires package-index
+network access once; later starts use the existing local executable without
+reinstalling it.
 
 The API key stays in the server process and is not returned to the browser,
 stored in SQLite, or included in proof packages. Keep `.env` private; it is
@@ -105,8 +113,8 @@ IdeaProof shows only the providers configured in `.env`:
 - Anthropic key only: new projects use Claude.
 - Both keys: choose OpenAI or Claude when creating each project; OpenAI is
   selected by default.
-- No keys: document generation stays disabled and Setup explains what is
-  missing.
+- No keys: startup stops and explains that at least one provider key is
+  required.
 
 One provider and model are fixed for each project. The same choice generates
 both documents and every later revision, so a project cannot silently switch
@@ -205,12 +213,12 @@ proof page later. Timestamp retries reuse an existing matching `.ots` file
 instead of trying to overwrite it.
 
 The project-local Python OpenTimestamps client can create and upgrade proofs
-through public calendars without Bitcoin Core. Its full independent
-verification step requires access to a local Bitcoin Core node; a pruned node
-is sufficient. When Bitcoin Core is unavailable, IdeaProof keeps an upgraded
-proof pending instead of incorrectly marking it failed. You can also verify a
-PDF and proof with the [OpenTimestamps browser
-verifier](https://opentimestamps.org/).
+through public calendars without Bitcoin Core. When Bitcoin Core is
+unavailable, IdeaProof confirms that the PDF digest matches the proof and that
+the upgraded proof contains a Bitcoin block attestation. Full independent
+verification of that block still requires access to a local Bitcoin Core node;
+a pruned node is sufficient. You can also independently verify a PDF and proof
+with the [OpenTimestamps browser verifier](https://opentimestamps.org/).
 
 To verify through IdeaProof, open **Verify proof** and select a PDF together
 with its matching `.ots` file. Any change to the PDF causes a mismatch.
@@ -238,7 +246,9 @@ page reports readiness without exposing secret values or internal paths.
 
 ### OpenTimestamps is missing
 
-Confirm Python is available, then rerun:
+Startup installs the pinned project-local client automatically. If that
+installation fails, confirm Python and package-index network access are
+available, then rerun:
 
 ```bash
 python3 --version
@@ -256,10 +266,10 @@ reported without logging the key or raw response.
 ### Proof remains pending
 
 This can be normal while OpenTimestamps completes confirmation. Wait and use
-**Check confirmation** again. If the proof has already been upgraded but no
-local Bitcoin Core node is available, IdeaProof deliberately leaves it pending;
-use the OpenTimestamps browser verifier or connect the client to Bitcoin Core
-for full independent verification. Do not edit the PDF or `.ots` file.
+**Check confirmation** again. Once the upgraded proof contains a Bitcoin block
+attestation, IdeaProof marks it confirmed even without a local Bitcoin Core
+node. Use the OpenTimestamps browser verifier or connect the client to Bitcoin
+Core for full independent verification. Do not edit the PDF or `.ots` file.
 
 ### Timestamp retry says the calendar is unavailable
 
