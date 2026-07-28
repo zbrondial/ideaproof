@@ -87,6 +87,27 @@ it("rejects malformed non-comment lines in an existing .env", () => {
   );
 });
 
+it("rejects variable expansion that Next.js would reinterpret", () => {
+  const root = tempRoot();
+  writeFileSync(
+    join(root, ".env"),
+    "OPENAI_API_KEY=$MISSING_PROVIDER_KEY\n",
+  );
+
+  expect(() => loadPreflightEnvironment(root, {})).toThrow(
+    "Variable expansion is not supported in .env",
+  );
+});
+
+it("rejects Next.js mode-specific environment files", () => {
+  const root = tempRoot();
+  writeFileSync(join(root, ".env.local"), "OPENAI_API_KEY=local-key\n");
+
+  expect(() => loadPreflightEnvironment(root, {})).toThrow(
+    "Unsupported environment file .env.local",
+  );
+});
+
 it("creates and checks the default local data directory", () => {
   const root = tempRoot();
   expect(checkWritableDataDirectory(root, {})).toBe(join(root, "data"));

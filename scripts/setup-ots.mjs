@@ -80,6 +80,23 @@ export function setupOpenTimestamps(options = {}) {
       stdio: "inherit",
     });
     if (created.status !== 0) return created.status ?? 1;
+  } else {
+    const validated = run(
+      resolveVenvPython(root, platform),
+      [
+        "-c",
+        "import sys; raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)",
+      ],
+      { stdio: "ignore" },
+    );
+    if (validated.status !== 0) {
+      const repaired = run(
+        python,
+        [...prefix, "-m", "venv", "--clear", venv],
+        { stdio: "inherit" },
+      );
+      if (repaired.status !== 0) return repaired.status ?? 1;
+    }
   }
 
   const installed = run(
@@ -87,6 +104,7 @@ export function setupOpenTimestamps(options = {}) {
     [
       "-m",
       "pip",
+      "--require-virtualenv",
       "install",
       `opentimestamps-client==${OTS_CLIENT_VERSION}`,
     ],

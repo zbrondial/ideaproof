@@ -76,7 +76,58 @@ it("creates a missing venv and installs only the pinned local client", () => {
   expect(run).toHaveBeenNthCalledWith(
     3,
     "/work/ideaproof/.venv/bin/python",
-    ["-m", "pip", "install", "opentimestamps-client==0.7.2"],
+    [
+      "-m",
+      "pip",
+      "--require-virtualenv",
+      "install",
+      "opentimestamps-client==0.7.2",
+    ],
+    { stdio: "inherit" },
+  );
+});
+
+it("repairs a corrupt existing venv before installing", () => {
+  const run = vi
+    .fn()
+    .mockReturnValueOnce({ status: 0, stdout: "Python 3.12.4" })
+    .mockReturnValueOnce({ status: 1 })
+    .mockReturnValueOnce({ status: 0 })
+    .mockReturnValueOnce({ status: 0 });
+
+  expect(
+    setupOpenTimestamps({
+      root: "/work/ideaproof",
+      platform: "linux",
+      exists: () => true,
+      run,
+    }),
+  ).toBe(0);
+  expect(run).toHaveBeenNthCalledWith(
+    2,
+    "/work/ideaproof/.venv/bin/python",
+    [
+      "-c",
+      "import sys; raise SystemExit(0 if sys.prefix != sys.base_prefix else 1)",
+    ],
+    { stdio: "ignore" },
+  );
+  expect(run).toHaveBeenNthCalledWith(
+    3,
+    "python3",
+    ["-m", "venv", "--clear", "/work/ideaproof/.venv"],
+    { stdio: "inherit" },
+  );
+  expect(run).toHaveBeenNthCalledWith(
+    4,
+    "/work/ideaproof/.venv/bin/python",
+    [
+      "-m",
+      "pip",
+      "--require-virtualenv",
+      "install",
+      "opentimestamps-client==0.7.2",
+    ],
     { stdio: "inherit" },
   );
 });

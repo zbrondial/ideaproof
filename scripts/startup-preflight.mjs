@@ -40,6 +40,21 @@ export function loadPreflightEnvironment(
 ) {
   const exists = dependencies.exists ?? existsSync;
   const read = dependencies.read ?? readFileSync;
+  const unsupportedEnvFiles = [
+    ".env.local",
+    ".env.development",
+    ".env.development.local",
+    ".env.production",
+    ".env.production.local",
+    ".env.test",
+    ".env.test.local",
+  ];
+  const unsupportedEnvFile = unsupportedEnvFiles.find((file) =>
+    exists(path.join(root, file)),
+  );
+  if (unsupportedEnvFile) {
+    throw new Error(`Unsupported environment file ${unsupportedEnvFile}`);
+  }
   const envPath = path.join(root, ".env");
   let fileEnv = {};
   if (exists(envPath)) {
@@ -52,6 +67,13 @@ export function loadPreflightEnvironment(
       }
     }
     fileEnv = parseEnv(contents);
+    if (
+      Object.values(fileEnv).some(
+        (value) => value && /(^|[^\\])\$/.test(value),
+      )
+    ) {
+      throw new Error("Variable expansion is not supported in .env");
+    }
   }
   return { ...fileEnv, ...inheritedEnv };
 }
