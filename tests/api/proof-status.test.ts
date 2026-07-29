@@ -6,6 +6,7 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { handlePackage } from "@/app/api/ideas/[id]/package/route";
 import { handleProofCheck } from "@/app/api/ideas/[id]/proof/check/route";
+import { AppError } from "@/server/errors";
 
 import { openTestStore } from "../helpers/open-test-store";
 
@@ -77,6 +78,7 @@ it("confirms a project only after both document proofs confirm", async () => {
     const { project } = pendingProject(store);
     const checker = vi.fn().mockResolvedValue({
       status: "confirmed",
+      verificationMethod: "bitcoin-core",
       bitcoinBlockHeight: 900000,
       confirmedAt: "2026-07-25",
     });
@@ -103,6 +105,7 @@ it("keeps the project pending while either proof is pending", async () => {
       .fn()
       .mockResolvedValueOnce({
         status: "confirmed",
+        verificationMethod: "bitcoin-core",
         bitcoinBlockHeight: 900000,
         confirmedAt: "2026-07-25",
       })
@@ -115,6 +118,150 @@ it("keeps the project pending while either proof is pending", async () => {
 
     expect(await response.json()).toMatchObject({ status: "pending" });
     expect(store.getProject(project.id).status).toBe("pending");
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("upgrades embedded attestations when Bitcoin Core later becomes available", async () => {
+  const store = openTestStore();
+  try {
+    const { project } = pendingProject(store);
+    const embeddedChecker = vi.fn().mockResolvedValue({
+      status: "confirmed",
+      verificationMethod: "embedded-attestation",
+      bitcoinBlockHeight: 900000,
+    });
+    await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: embeddedChecker,
+    });
+
+    expect(
+      store
+        .getProject(project.id)
+        .proofArtifacts.every(
+          (artifact) =>
+            artifact.status === "confirmed" && artifact.confirmedAt === null,
+        ),
+    ).toBe(true);
+
+    const bitcoinCoreChecker = vi.fn().mockResolvedValue({
+      status: "confirmed",
+      verificationMethod: "bitcoin-core",
+      bitcoinBlockHeight: 900000,
+      confirmedAt: "2026-07-25",
+    });
+    await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: bitcoinCoreChecker,
+    });
+
+    expect(bitcoinCoreChecker).toHaveBeenCalledTimes(2);
+    expect(
+      store
+        .getProject(project.id)
+        .proofArtifacts.every(
+          (artifact) => artifact.confirmedAt === "2026-07-25",
+        ),
+    ).toBe(true);
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it.each([
+  ["a pending recheck", () => Promise.resolve({ status: "pending" as const })],
+  [
+    "a retryable recheck error",
+    () =>
+      Promise.reject(
+        new AppError(
+          "OTS_TIMEOUT",
+          "OpenTimestamps did not finish in time.",
+          504,
+          true,
+        ),
+      ),
+  ],
+])("preserves embedded attestations after %s", async (_case, recheck) => {
+  const store = openTestStore();
+  try {
+    const { project } = pendingProject(store);
+    await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: vi.fn().mockResolvedValue({
+        status: "confirmed",
+        verificationMethod: "embedded-attestation",
+        bitcoinBlockHeight: 900000,
+      }),
+    });
+
+    const response = await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: vi.fn(recheck),
+    });
+
+    expect(await response.json()).toMatchObject({
+      status: "confirmed",
+      artifacts: [
+        {
+          status: "confirmed",
+          verificationMethod: "embedded-attestation",
+        },
+        {
+          status: "confirmed",
+          verificationMethod: "embedded-attestation",
+        },
+      ],
+    });
+    expect(
+      store
+        .getProject(project.id)
+        .proofArtifacts.every(
+          (artifact) =>
+            artifact.status === "confirmed" &&
+            artifact.confirmedAt === null &&
+            artifact.errorCode === null,
+        ),
+    ).toBe(true);
+  } finally {
+    store.closeAndRemove();
+  }
+});
+
+it("marks a completed timestamp as failed after a definitive mismatch", async () => {
+  const store = openTestStore();
+  try {
+    const { project } = pendingProject(store);
+    await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: vi.fn().mockResolvedValue({
+        status: "confirmed",
+        verificationMethod: "embedded-attestation",
+        bitcoinBlockHeight: 900000,
+      }),
+    });
+
+    const response = await handleProofCheck({
+      projectId: project.id,
+      store,
+      check: vi.fn().mockResolvedValue({ status: "mismatch" }),
+    });
+
+    expect(await response.json()).toMatchObject({
+      status: "failed",
+      artifacts: [
+        { status: "failed", errorCode: "OTS_DIGEST_MISMATCH" },
+        { status: "failed", errorCode: "OTS_DIGEST_MISMATCH" },
+      ],
+    });
+    expect(store.getProject(project.id).status).toBe("failed");
   } finally {
     store.closeAndRemove();
   }

@@ -2,9 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 
+import { confirmationLabel } from "@/server/proof/semantics";
+
 type VerifyResult = {
   status: "confirmed" | "pending" | "mismatch" | "invalid";
   sha256: string;
+  verificationMethod?: "bitcoin-core" | "embedded-attestation";
   bitcoinBlockHeight?: number;
   confirmedAt?: string;
   message: string;
@@ -100,7 +103,7 @@ export function VerifyForm() {
           <p className="section-label">Verification result</p>
           <h2>
             {result.status === "confirmed"
-              ? "Proof confirmed"
+              ? confirmationLabel(result)
               : result.status === "pending"
                 ? "Confirmation pending"
                 : result.status === "mismatch"

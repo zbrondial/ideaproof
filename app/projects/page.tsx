@@ -56,7 +56,7 @@ export default async function ProjectsPage({
             <option value="">All statuses</option>
             <option value="draft">Draft</option>
             <option value="pending">Proof pending</option>
-            <option value="confirmed">Confirmed</option>
+            <option value="confirmed">Timestamp complete</option>
             <option value="failed">Needs attention</option>
           </select>
         </label>

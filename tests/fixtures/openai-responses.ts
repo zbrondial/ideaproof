@@ -95,6 +95,7 @@ export async function fixtureStampPdf(pdfPath: string) {
 export async function fixtureCheckProof() {
   return {
     status: "confirmed" as const,
+    verificationMethod: "bitcoin-core" as const,
     bitcoinBlockHeight: 900000,
     confirmedAt: "2026-07-25",
   };

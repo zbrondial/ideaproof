@@ -16,6 +16,24 @@ type CreateMessage = (
   params: Anthropic.MessageCreateParamsNonStreaming,
 ) => Promise<MessageResponse>;
 
+function isAnthropicBillingError(error: {
+  error?: unknown;
+  message?: unknown;
+}) {
+  const response = error.error as {
+    error?: { message?: unknown };
+  };
+  const detail =
+    typeof response?.error?.message === "string"
+      ? response.error.message
+      : typeof error.message === "string"
+        ? error.message
+        : "";
+  return /billing|credit balance|insufficient (?:credits?|funds?)|payment required/i.test(
+    detail,
+  );
+}
+
 function mapAnthropicError(error: unknown): never {
   if (error instanceof Anthropic.AuthenticationError) {
     throw new AppError(
@@ -36,6 +54,48 @@ function mapAnthropicError(error: unknown): never {
     throw new AppError(
       "ANTHROPIC_CONNECTION",
       "IdeaProof could not connect to Claude.",
+      502,
+      true,
+    );
+  }
+  if (
+    error instanceof Anthropic.BadRequestError &&
+    isAnthropicBillingError(error)
+  ) {
+    throw new AppError(
+      "ANTHROPIC_BILLING_REQUIRED",
+      "Anthropic API credits or billing are unavailable. Check the Anthropic Console.",
+      402,
+    );
+  }
+  if (error instanceof Anthropic.PermissionDeniedError) {
+    throw new AppError(
+      "ANTHROPIC_PERMISSION_DENIED",
+      "The configured Anthropic account cannot use this Claude model.",
+      403,
+    );
+  }
+  if (error instanceof Anthropic.NotFoundError) {
+    throw new AppError(
+      "ANTHROPIC_MODEL_UNAVAILABLE",
+      "The configured Claude model is unavailable to this Anthropic account.",
+      422,
+    );
+  }
+  if (
+    error instanceof Anthropic.BadRequestError ||
+    error instanceof Anthropic.UnprocessableEntityError
+  ) {
+    throw new AppError(
+      "ANTHROPIC_REQUEST_INVALID",
+      "Claude rejected the document-generation request. Check the configured model and update IdeaProof.",
+      422,
+    );
+  }
+  if (error instanceof Anthropic.InternalServerError) {
+    throw new AppError(
+      "ANTHROPIC_SERVICE_UNAVAILABLE",
+      "Claude is temporarily unavailable. Try again.",
       502,
       true,
     );

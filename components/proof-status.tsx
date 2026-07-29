@@ -8,11 +8,13 @@ import type { ProjectStatus } from "@/server/db/projects";
 export function ProofStatus({
   projectId,
   initialStatus,
+  hasEmbeddedAttestations = false,
   specificationRevisionId,
   ndaRevisionId,
 }: {
   projectId: string;
   initialStatus: ProjectStatus;
+  hasEmbeddedAttestations?: boolean;
   specificationRevisionId: string;
   ndaRevisionId: string;
 }) {
@@ -36,7 +38,12 @@ export function ProofStatus({
       }
       setMessage(
         body.status === "confirmed"
-          ? "Both proofs are confirmed."
+          ? body.artifacts?.every(
+              (artifact: { confirmedAt?: string | null }) =>
+                artifact.confirmedAt,
+            )
+            ? "Both proofs were independently verified against Bitcoin Core."
+            : "Both proofs match their PDFs and contain Bitcoin block attestations."
           : body.status === "pending"
             ? "Confirmation is still pending. Check again later."
             : "The proof needs attention.",
@@ -80,7 +87,7 @@ export function ProofStatus({
         >
           {checking ? "Retrying…" : "Retry timestamping"}
         </button>
-      ) : initialStatus !== "confirmed" ? (
+      ) : initialStatus !== "confirmed" || hasEmbeddedAttestations ? (
         <button
           className="button"
           type="button"

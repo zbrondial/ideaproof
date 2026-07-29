@@ -56,6 +56,7 @@ it.each([
       status === "confirmed"
         ? {
             status,
+            verificationMethod: "bitcoin-core",
             bitcoinBlockHeight: 900000,
             confirmedAt: "2026-07-25",
           }
@@ -73,6 +74,7 @@ it("describes an embedded Bitcoin attestation without claiming node verification
   const response = await verifyMultipart(validFiles, {
     checkProof: async () => ({
       status: "confirmed",
+      verificationMethod: "embedded-attestation",
       bitcoinBlockHeight: 959810,
     }),
   });

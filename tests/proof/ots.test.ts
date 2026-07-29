@@ -73,6 +73,7 @@ it("upgrades then verifies an existing proof", async () => {
     ),
   ).resolves.toMatchObject({
     status: "confirmed",
+    verificationMethod: "bitcoin-core",
     bitcoinBlockHeight: 900000,
   });
   expect(fakeRunner).toHaveBeenNthCalledWith(
@@ -179,6 +180,7 @@ it("confirms a matching upgraded proof from its embedded Bitcoin attestation whe
     checkProof(pdfPath, `${pdfPath}.ots`, fakeRunner),
   ).resolves.toEqual({
     status: "confirmed",
+    verificationMethod: "embedded-attestation",
     bitcoinBlockHeight: 959810,
   });
   expect(fakeRunner).toHaveBeenNthCalledWith(

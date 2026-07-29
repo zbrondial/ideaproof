@@ -5,6 +5,7 @@ import { ProofStatus } from "@/components/proof-status";
 import { StatusBadge } from "@/components/status-badge";
 import { getProjectStore } from "@/server/db/projects";
 import { withOwnerDeclaration } from "@/server/documents/attribution";
+import { confirmationLabel } from "@/server/proof/semantics";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,9 @@ export default async function ProofPage({
               <span>{documentLabels[artifact.documentType]}</span>
               <strong>
                 {artifact.status === "confirmed"
-                  ? "Confirmed"
+                  ? confirmationLabel({
+                      confirmedAt: artifact.confirmedAt,
+                    })
                   : artifact.status === "pending"
                     ? "Pending confirmation"
                     : "Needs attention"}
@@ -83,6 +86,10 @@ export default async function ProofPage({
       <ProofStatus
         projectId={id}
         initialStatus={project.status}
+        hasEmbeddedAttestations={project.proofArtifacts.some(
+          (artifact) =>
+            artifact.status === "confirmed" && !artifact.confirmedAt,
+        )}
         specificationRevisionId={project.approval.specificationRevisionId}
         ndaRevisionId={project.approval.ndaRevisionId}
       />
