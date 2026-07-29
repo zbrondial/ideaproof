@@ -5,7 +5,7 @@ const labels: Record<ProjectStatus, string> = {
   generating: "Generating",
   review: "In review",
   pending: "Proof pending",
-  confirmed: "Confirmed",
+  confirmed: "Timestamp complete",
   failed: "Needs attention",
 };
 

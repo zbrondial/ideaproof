@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseOtsOutput } from "@/server/proof/parse";
+import { parseOtsInfo, parseOtsOutput } from "@/server/proof/parse";
 
 describe("parseOtsOutput", () => {
   it.each([
@@ -22,8 +22,24 @@ describe("parseOtsOutput", () => {
       ),
     ).toEqual({
       status: "confirmed",
+      verificationMethod: "bitcoin-core",
       bitcoinBlockHeight: 900000,
       confirmedAt: "2026-07-25",
+    });
+  });
+});
+
+describe("parseOtsInfo", () => {
+  it("identifies an embedded attestation without claiming Bitcoin Core verification", () => {
+    expect(
+      parseOtsInfo(
+        "File sha256 hash: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\nTimestamp:\nverify BitcoinBlockHeaderAttestation(959810)",
+        "a".repeat(64),
+      ),
+    ).toEqual({
+      status: "confirmed",
+      verificationMethod: "embedded-attestation",
+      bitcoinBlockHeight: 959810,
     });
   });
 });

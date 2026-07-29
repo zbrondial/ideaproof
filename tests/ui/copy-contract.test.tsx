@@ -11,6 +11,7 @@ import { IdeaEditor } from "@/components/idea-editor";
 import { ProofStatus } from "@/components/proof-status";
 import { ProjectForm } from "@/components/project-form";
 import { ReviewWorkspace } from "@/components/review-workspace";
+import { StatusBadge } from "@/components/status-badge";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -49,6 +50,13 @@ it("keeps the timestamp action out of the primary navigation", () => {
 
   expect(html).not.toContain("Timestamp an idea");
   expect(html).not.toContain('href="/projects/new"');
+});
+
+it("does not describe an embedded timestamp as independently verified", () => {
+  const html = renderToStaticMarkup(<StatusBadge status="confirmed" />);
+
+  expect(html).toContain("Timestamp complete");
+  expect(html).not.toContain(">Confirmed<");
 });
 
 it("renders the approved digital-fingerprint explanation", async () => {

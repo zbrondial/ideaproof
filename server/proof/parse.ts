@@ -1,8 +1,14 @@
 export type VerificationResult =
   | {
       status: "confirmed";
+      verificationMethod: "bitcoin-core";
       bitcoinBlockHeight: number;
-      confirmedAt?: string;
+      confirmedAt: string;
+    }
+  | {
+      status: "confirmed";
+      verificationMethod: "embedded-attestation";
+      bitcoinBlockHeight: number;
     }
   | { status: "pending" | "mismatch" | "invalid" };
 
@@ -21,6 +27,7 @@ export function parseOtsOutput(output: string): VerificationResult {
   if (/success|attests existence/i.test(output) && block && date) {
     return {
       status: "confirmed",
+      verificationMethod: "bitcoin-core",
       bitcoinBlockHeight: Number(block[1]),
       confirmedAt: date[1],
     };
@@ -44,6 +51,7 @@ export function parseOtsInfo(
 
   return {
     status: "confirmed",
+    verificationMethod: "embedded-attestation",
     bitcoinBlockHeight: Math.min(...blockHeights),
   };
 }

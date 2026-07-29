@@ -169,7 +169,7 @@ export const allowedTransitions = {
   generating: ["review", "failed"],
   review: ["generating", "pending", "failed"],
   pending: ["confirmed", "failed"],
-  confirmed: [],
+  confirmed: ["failed"],
   failed: ["generating", "pending"],
 } as const satisfies Record<ProjectStatus, readonly ProjectStatus[]>;
 

@@ -58,7 +58,9 @@ export async function handleProofCheck({
 
     const checks = await Promise.allSettled(
       project.proofArtifacts.map(async (artifact) => {
-        if (artifact.status === "confirmed") return;
+        if (artifact.status === "confirmed" && artifact.confirmedAt) return;
+        const hasEmbeddedAttestation =
+          artifact.status === "confirmed" && !artifact.confirmedAt;
         const pdfPath =
           dataDir && !isAbsolute(artifact.pdfPath)
             ? join(dataDir, artifact.pdfPath)
@@ -75,15 +77,20 @@ export async function handleProofCheck({
             {
               status: "confirmed",
               bitcoinBlockHeight: result.bitcoinBlockHeight,
-              confirmedAt: result.confirmedAt,
+              confirmedAt:
+                result.verificationMethod === "bitcoin-core"
+                  ? result.confirmedAt
+                  : null,
             },
           );
         } else if (result.status === "pending") {
-          store.updateProofArtifact(
-            project.approval!.id,
-            artifact.documentType,
-            { status: "pending" },
-          );
+          if (!hasEmbeddedAttestation) {
+            store.updateProofArtifact(
+              project.approval!.id,
+              artifact.documentType,
+              { status: "pending" },
+            );
+          }
         } else {
           store.updateProofArtifact(
             project.approval!.id,
@@ -103,6 +110,9 @@ export async function handleProofCheck({
     for (const [index, result] of checks.entries()) {
       if (result.status === "rejected") {
         const artifact = project.proofArtifacts[index];
+        if (artifact.status === "confirmed" && !artifact.confirmedAt) {
+          continue;
+        }
         const code =
           result.reason instanceof AppError
             ? result.reason.code
@@ -129,6 +139,8 @@ export async function handleProofCheck({
       store.transitionProject(projectId, "pending", "confirmed");
     } else if (anyFailed && updated.status === "pending") {
       store.transitionProject(projectId, "pending", "failed");
+    } else if (anyFailed && updated.status === "confirmed") {
+      store.transitionProject(projectId, "confirmed", "failed");
     } else if (!anyFailed && updated.status === "failed") {
       store.transitionProject(projectId, "failed", "pending");
     }
@@ -142,6 +154,12 @@ export async function handleProofCheck({
         sha256: artifact.sha256,
         bitcoinBlockHeight: artifact.bitcoinBlockHeight,
         confirmedAt: artifact.confirmedAt,
+        verificationMethod:
+          artifact.status === "confirmed"
+            ? artifact.confirmedAt
+              ? "bitcoin-core"
+              : "embedded-attestation"
+            : undefined,
         errorCode: artifact.errorCode,
       })),
     });

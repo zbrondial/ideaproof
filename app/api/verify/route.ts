@@ -20,7 +20,10 @@ type Checker = (
 ) => Promise<VerificationResult>;
 
 function messageFor(result: VerificationResult) {
-  if (result.status === "confirmed" && !result.confirmedAt) {
+  if (
+    result.status === "confirmed" &&
+    result.verificationMethod === "embedded-attestation"
+  ) {
     return "The proof matches these exact PDF bytes and contains a Bitcoin block attestation.";
   }
   return {

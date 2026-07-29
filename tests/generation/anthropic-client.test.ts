@@ -55,7 +55,11 @@ describe("safe Anthropic failures", () => {
         "secret authentication detail",
         new Headers(),
       ),
-      "ANTHROPIC_AUTHENTICATION",
+      {
+        code: "ANTHROPIC_AUTHENTICATION",
+        status: 401,
+        retryable: false,
+      },
     ],
     [
       new Anthropic.RateLimitError(
@@ -64,22 +68,139 @@ describe("safe Anthropic failures", () => {
         "secret rate-limit detail",
         new Headers(),
       ),
-      "ANTHROPIC_RATE_LIMIT",
+      { code: "ANTHROPIC_RATE_LIMIT", status: 429, retryable: true },
     ],
     [
       new Anthropic.APIConnectionError({
         message: "secret connection detail",
       }),
-      "ANTHROPIC_CONNECTION",
+      { code: "ANTHROPIC_CONNECTION", status: 502, retryable: true },
     ],
-    [new Error("secret provider detail"), "ANTHROPIC_REQUEST_FAILED"],
-  ])("maps provider errors to %s", async (error, code) => {
+    [
+      new Anthropic.BadRequestError(
+        400,
+        {
+          type: "error",
+          error: {
+            type: "invalid_request_error",
+            message: "Your credit balance is too low to access the API.",
+          },
+        },
+        "secret billing detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_BILLING_REQUIRED",
+        status: 402,
+        retryable: false,
+      },
+    ],
+    [
+      new Anthropic.PermissionDeniedError(
+        403,
+        {
+          type: "error",
+          error: {
+            type: "permission_error",
+            message: "secret permission detail",
+          },
+        },
+        "secret permission detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_PERMISSION_DENIED",
+        status: 403,
+        retryable: false,
+      },
+    ],
+    [
+      new Anthropic.NotFoundError(
+        404,
+        {
+          type: "error",
+          error: {
+            type: "not_found_error",
+            message: "secret model detail",
+          },
+        },
+        "secret model detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_MODEL_UNAVAILABLE",
+        status: 422,
+        retryable: false,
+      },
+    ],
+    [
+      new Anthropic.BadRequestError(
+        400,
+        {
+          type: "error",
+          error: {
+            type: "invalid_request_error",
+            message: "secret invalid request detail",
+          },
+        },
+        "secret invalid request detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_REQUEST_INVALID",
+        status: 422,
+        retryable: false,
+      },
+    ],
+    [
+      new Anthropic.UnprocessableEntityError(
+        422,
+        {
+          type: "error",
+          error: {
+            type: "invalid_request_error",
+            message: "secret invalid request detail",
+          },
+        },
+        "secret invalid request detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_REQUEST_INVALID",
+        status: 422,
+        retryable: false,
+      },
+    ],
+    [
+      new Anthropic.InternalServerError(
+        500,
+        {
+          type: "error",
+          error: {
+            type: "api_error",
+            message: "secret provider detail",
+          },
+        },
+        "secret provider detail",
+        new Headers(),
+      ),
+      {
+        code: "ANTHROPIC_SERVICE_UNAVAILABLE",
+        status: 502,
+        retryable: true,
+      },
+    ],
+    [
+      new Error("secret provider detail"),
+      { code: "ANTHROPIC_REQUEST_FAILED", status: 502, retryable: true },
+    ],
+  ])("maps provider errors to $expected.code", async (error, expected) => {
     const port = createAnthropicResponsesPort({
       model: "claude-opus-4-8",
       create: vi.fn().mockRejectedValue(error),
     });
 
-    await expect(port.parse(request)).rejects.toMatchObject({ code });
+    await expect(port.parse(request)).rejects.toMatchObject(expected);
     await expect(port.parse(request)).rejects.not.toMatchObject({
       message: expect.stringContaining("secret"),
     });

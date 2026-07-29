@@ -215,10 +215,12 @@ instead of trying to overwrite it.
 The project-local Python OpenTimestamps client can create and upgrade proofs
 through public calendars without Bitcoin Core. When Bitcoin Core is
 unavailable, IdeaProof confirms that the PDF digest matches the proof and that
-the upgraded proof contains a Bitcoin block attestation. Full independent
-verification of that block still requires access to a local Bitcoin Core node;
-a pruned node is sufficient. You can also independently verify a PDF and proof
-with the [OpenTimestamps browser verifier](https://opentimestamps.org/).
+the upgraded proof contains a Bitcoin block attestation; the UI labels this
+state **Bitcoin attestation found**. Full independent verification of that
+block still requires access to a local Bitcoin Core node; a pruned node is
+sufficient. A successful Bitcoin Core check is labeled **Independently
+verified**. You can also independently verify a PDF and proof with the
+[OpenTimestamps browser verifier](https://opentimestamps.org/).
 
 To verify through IdeaProof, open **Verify proof** and select a PDF together
 with its matching `.ots` file. Any change to the PDF causes a mismatch.
@@ -263,13 +265,26 @@ Check the selected provider's key and model in `.env`, then restart IdeaProof.
 Authentication, rate-limit, refusal, malformed-output, and length errors are
 reported without logging the key or raw response.
 
+For Claude errors:
+
+- authentication errors require checking or rotating `ANTHROPIC_API_KEY`;
+- billing errors require adding API credits or resolving billing in the
+  Anthropic Console;
+- permission or model-unavailable errors require selecting a model enabled for
+  that Anthropic account;
+- invalid-request errors require selecting a supported model and updating
+  IdeaProof to the latest version;
+- rate-limit, connection, and service-unavailable errors are safe to retry.
+
 ### Proof remains pending
 
 This can be normal while OpenTimestamps completes confirmation. Wait and use
 **Check confirmation** again. Once the upgraded proof contains a Bitcoin block
-attestation, IdeaProof marks it confirmed even without a local Bitcoin Core
-node. Use the OpenTimestamps browser verifier or connect the client to Bitcoin
-Core for full independent verification. Do not edit the PDF or `.ots` file.
+attestation, IdeaProof marks the timestamp complete and labels it **Bitcoin
+attestation found**, even without a local Bitcoin Core node. Use the
+OpenTimestamps browser verifier or connect the client to Bitcoin Core and check
+again for **Independently verified** status. Do not edit the PDF or `.ots`
+file.
 
 ### Timestamp retry says the calendar is unavailable
 
